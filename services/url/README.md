@@ -2,7 +2,9 @@
 
 This private service evaluates submitted URL **strings** using the pinned MIT-licensed [phishing-url-detector](https://github.com/Sarthakagrwal/phishing-url-detector) commit `8648994a2e2ff25eac8fe23b46705ecbcd27f296`. Its parser, 20 ordered features, heuristic rules, and plain JSON logistic model are bundled under `app/upstream/`. Prediction performs no DNS, HTTP, WHOIS, redirects, or page fetches. The upstream CLI, browser code, and joblib file are not included.
 
-`GET /health/ready` is 200 only when the JSON model loads and its feature order matches the extractor. `POST /predict` accepts one to five strings of at most 2,048 raw characters and returns the private gateway `ModuleResult` shape. Malformed non-scalar Unicode is rejected with a generic 422 response that does not echo the submitted URL. The score is the upstream 0–100 **blended policy score** (`raw_score_type: upstream_blended_score_0_100`), not Fraudster's aggregate risk score or a calibrated fraud probability. The upstream lower band is not a safety guarantee.
+`GET /health/ready` is 200 only when the JSON model loads and its feature order matches the extractor. `POST /predict` accepts one to five HTTP(S) URL strings of at most 2,048 raw characters and returns the private gateway `ModuleResult` shape. Missing schemes are interpreted as HTTP by the pinned parser. Hostless URLs, unsupported schemes, malformed hosts or ports, whitespace, backslashes, browser-normalized host encodings, and malformed non-scalar Unicode receive a generic 422 response that does not echo the submitted URL. Backslashes, percent escapes in hosts, and IDNA dot-equivalent separators are rejected because browsers can navigate to a different host than the pinned string parser would classify.
+
+Evidence reports the observed path length, each feature that triggered a heuristic rule, and the model's top signed feature contributions, with actual feature values and quotes from the submitted URL. It also exposes separately named `upstream_heuristic_score_0_100`, `upstream_model_output_0_1`, and `upstream_blended_score_0_100` values for each URL. The module `score` is the maximum upstream 0–100 **blended policy score** (`raw_score_type: upstream_blended_score_0_100`), not Fraudster's aggregate risk score. The model output is not a calibrated fraud probability. The upstream lower band is not a safety guarantee.
 
 The model metadata attributes training to the PhiUSIIL Phishing URL Dataset by Arvind Prasad and Shalini Chandra (UCI #967, CC BY 4.0) and documents synthetic legitimate deep-link augmentation. Those upstream metadata and scores are not Fraudster performance results. Attribution and the complete MIT notice are recorded in `third_party/manifest.json`, `third_party/licenses/PhiUSIIL-ATTRIBUTION.md`, and `third_party/licenses/phishing-url-detector-LICENSE.txt`.
 
@@ -15,4 +17,4 @@ $env:PYTHONPATH = (Get-Location).Path
 .\.venv-url\Scripts\python.exe -m pytest -q services\url\tests
 ```
 
-AKH-02 will expand feature-level evidence and malformed/edge-case coverage. The service remains a private adapter behind the gateway.
+The service remains a private adapter behind the gateway.
