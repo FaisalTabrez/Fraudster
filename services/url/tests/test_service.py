@@ -213,6 +213,25 @@ async def test_malformed_urls_are_rejected_without_echo(url: str) -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("url", [
+    "https://evil\u3002xyz/login", "https://evil\uff0exyz/login",
+    "https://evil\uff61xyz/login", "https://evil%2exyz/login",
+    "https://%65vil.xyz/login",
+])
+async def test_browser_normalized_hosts_are_rejected_before_classification(
+    url: str, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def forbid_classification(*_args, **_kwargs):
+        raise AssertionError("Browser-normalized host reached the classifier")
+
+    monkeypatch.setattr(detector_module, "classify", forbid_classification)
+    response = await request(create_app(), "POST", "/predict", json={"urls": [url]})
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Invalid URL request."}
+    assert url not in response.text
+
+
+@pytest.mark.asyncio
 async def test_valid_ipv6_literal_remains_supported() -> None:
     response = await request(create_app(), "POST", "/predict", json={"urls": ["http://[::1]:8080/path"]})
     assert response.status_code == 200

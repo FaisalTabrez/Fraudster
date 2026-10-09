@@ -44,6 +44,10 @@ class PredictRequest(BaseModel):
             host = parsed.host
             if parsed.scheme not in {"http", "https"} or not host:
                 raise ValueError("Only web URLs with a host can be analyzed")
+            # Browsers decode percent escapes in hosts and treat these IDNA
+            # dot equivalents as label separators; the pinned parser does not.
+            if "%" in host or any(dot in host for dot in "\u3002\uff0e\uff61"):
+                raise ValueError("URL host requires browser normalization")
             if any(character.isspace() or ord(character) < 32 for character in url):
                 raise ValueError("URL contains whitespace or control characters")
             if host.startswith("["):
