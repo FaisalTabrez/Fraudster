@@ -8,13 +8,15 @@
       "immutable_commit_or_release": "116a8c827741e0572563f678d25ed04306b1e3ff",
       "inspected_license": "MIT",
       "license_verification": "verified from LICENSE at the recorded commit",
-      "copied_file_list": [],
+      "copied_file_list": ["third_party/licenses/SmishX-LICENSE.txt"],
       "model_provenance": "No model asset is bundled. The inspected source calls an externally configured OpenAI model.",
-      "local_changes": "None; the adapter remains not implemented.",
+      "local_changes": "Implemented a new text-only structured-output adapter informed by the reviewed category guidance. No upstream runtime code was copied. The adapter separates legitimate, spam, suspected_scam, and unknown; validates literal evidence quotes; records model and prompt versions; never dereferences URLs; and writes no output files.",
       "verification_notes": [
         "The inspected source combines phishing and spam into a boolean category.",
         "The final detection exception returns category true.",
-        "URL expansion is called before optional URL checks and therefore still dereferences input in the inspected fast path."
+        "URL expansion is called before optional URL checks and therefore still dereferences input in the inspected fast path.",
+        "The local adapter does not use the upstream URL, crawling, screenshot, search, WHOIS, or output-file paths.",
+        "Provider categories and evidence are schema validated; evidence quotes must be exact substrings of the submitted text."
       ]
     },
     {
