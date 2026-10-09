@@ -108,3 +108,26 @@ async def test_provider_timeout_is_total_deadline_for_slow_stream(monkeypatch) -
         await detector.predict("Ambiguous text")
 
     assert exc_info.value.code == "provider_timeout"
+
+
+@pytest.mark.asyncio
+async def test_provider_response_rejects_whitespace_only_evidence_quote(monkeypatch) -> None:
+    async def provider_response_with_blank_quote(
+        _detector: TextDetector, _text: str
+    ) -> dict[str, object]:
+        return {
+            "verdict": "suspected_scam",
+            "severity": "high",
+            "evidence": [
+                {
+                    "indicator_type": "credential_request",
+                    "quote": " ",
+                    "explanation": "Claims the blank quote is evidence.",
+                }
+            ],
+        }
+    monkeypatch.setattr(TextDetector, "_call_provider", provider_response_with_blank_quote)
+    detector = TextDetector(model_name="provider-model", api_key_configured=True, api_key="test")
+    with pytest.raises(DetectorUnavailable) as exc_info:
+        await detector.predict("Message containing a space")
+    assert exc_info.value.code == "invalid_provider_response"
