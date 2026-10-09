@@ -19,6 +19,134 @@ async def test_text_service_starts_without_credentials_and_refuses_canned_predic
     assert prediction.json()["detail"]["code"] == "not_configured"
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("text", "verdict", "severity", "quote"),
+    [
+        (
+            "Your verification code is 123456. Do not share it.",
+            "legitimate",
+            "low",
+            "Do not share it.",
+        ),
+        (
+            "Save 20% on shoes this weekend.",
+            "spam",
+            "low",
+            "Save 20% on shoes",
+        ),
+        (
+            "Your account is locked. Send your password now.",
+            "suspected_scam",
+            "high",
+            "Send your password now.",
+        ),
+        ("Are you free later?", "unknown", "unknown", None),
+    ],
+)
+async def test_otp_promotion_credential_and_unknown_categories_remain_distinct(
+    monkeypatch, text: str, verdict: str, severity: str, quote: str | None
+) -> None:
+    async def provider_response(
+        _detector: TextDetector, _text: str
+    ) -> dict[str, object]:
+        evidence = []
+        if quote is not None:
+            evidence.append(
+                {
+                    "indicator_type": "message_language",
+                    "quote": quote,
+                    "explanation": "The quoted message text supports this category.",
+                }
+            )
+        return {"verdict": verdict, "severity": severity, "evidence": evidence}
+
+    monkeypatch.setattr(TextDetector, "_call_provider", provider_response)
+    detector = TextDetector(
+        model_name="provider-model", api_key_configured=True, api_key="test"
+    )
+
+    result = await detector.predict(text)
+
+    assert result["verdict"] == verdict
+    assert result["severity"] == severity
+    assert result["score"] is None
+    assert result["raw_score_type"] == "categorical_model_output"
+
+
+@pytest.mark.asyncio
+async def test_invalid_utf8_provider_json_is_unavailable(monkeypatch) -> None:
+    async def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=b"\xff")
+
+    real_async_client = httpx.AsyncClient
+
+    def client_factory(*args, **kwargs):
+        kwargs["transport"] = httpx.MockTransport(handler)
+        return real_async_client(*args, **kwargs)
+
+    monkeypatch.setattr("services.text.app.detector.httpx.AsyncClient", client_factory)
+    detector = TextDetector(
+        model_name="provider-model", api_key_configured=True, api_key="test"
+    )
+
+    with pytest.raises(DetectorUnavailable) as exc_info:
+        await detector.predict("hello")
+
+    assert exc_info.value.code == "invalid_provider_response"
+
+
+@pytest.mark.asyncio
+async def test_provider_api_failure_is_unavailable(monkeypatch) -> None:
+    async def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(502, text="upstream unavailable")
+
+    real_async_client = httpx.AsyncClient
+
+    def client_factory(*args, **kwargs):
+        kwargs["transport"] = httpx.MockTransport(handler)
+        return real_async_client(*args, **kwargs)
+
+    monkeypatch.setattr("services.text.app.detector.httpx.AsyncClient", client_factory)
+    detector = TextDetector(
+        model_name="provider-model", api_key_configured=True, api_key="test"
+    )
+
+    with pytest.raises(DetectorUnavailable) as exc_info:
+        await detector.predict("hello")
+
+    assert exc_info.value.code == "provider_unavailable"
+
+
+@pytest.mark.asyncio
+async def test_provider_self_rating_cannot_become_a_probability(monkeypatch) -> None:
+    async def provider_response(
+        _detector: TextDetector, _text: str
+    ) -> dict[str, object]:
+        return {
+            "verdict": "suspected_scam",
+            "severity": "high",
+            "probability": 0.99,
+            "evidence": [
+                {
+                    "indicator_type": "credential_request",
+                    "quote": "Send your password",
+                    "explanation": "Requests a credential.",
+                }
+            ],
+        }
+
+    monkeypatch.setattr(TextDetector, "_call_provider", provider_response)
+    detector = TextDetector(
+        model_name="provider-model", api_key_configured=True, api_key="test"
+    )
+
+    with pytest.raises(DetectorUnavailable) as exc_info:
+        await detector.predict("Send your password")
+
+    assert exc_info.value.code == "invalid_provider_response"
+
+
 def test_structured_result_keeps_literal_evidence_and_versions() -> None:
     detector = TextDetector(model_name="provider-model", api_key_configured=True, api_key="test")
     text = "Your verification code is 123456. Do not share it."
