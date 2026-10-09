@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ipaddress import IPv6Address
 from typing import Annotated
 
 from fastapi import FastAPI, HTTPException, Request, Response, status
@@ -8,6 +9,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .detector import DetectorUnavailable, UrlDetector
+from .upstream.urlparse import parse_url
 
 
 UrlValue = Annotated[str, Field(min_length=1, max_length=2048)]
@@ -32,9 +34,29 @@ class PredictRequest(BaseModel):
 
     @field_validator("urls")
     @classmethod
-    def reject_blank_urls(cls, urls: list[str]) -> list[str]:
-        if any(not url.strip() for url in urls):
-            raise ValueError("URLs cannot be blank")
+    def reject_malformed_urls(cls, urls: list[str]) -> list[str]:
+        for url in urls:
+            parsed = parse_url(url)
+            host = parsed.host
+            if parsed.scheme not in {"http", "https"} or not host:
+                raise ValueError("Only web URLs with a host can be analyzed")
+            if any(character.isspace() or ord(character) < 32 for character in url):
+                raise ValueError("URL contains whitespace or control characters")
+            if host.startswith("["):
+                try:
+                    IPv6Address(host[1:-1])
+                except ValueError:
+                    raise ValueError("Invalid IP host") from None
+                authority = parsed.href.split("://", 1)[1].split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
+                host_and_port = authority.rsplit("@", 1)[-1].lower()
+                if not host.endswith("]") or (
+                    host_and_port != host and (not parsed.port or host_and_port != f"{host}:{parsed.port}")
+                ):
+                    raise ValueError("Invalid IP host")
+            elif ":" in host or "[" in host or "]" in host:
+                raise ValueError("Invalid host or port")
+            if parsed.port and (int(parsed.port) > 65535):
+                raise ValueError("Invalid port")
         return urls
 
 
