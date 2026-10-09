@@ -55,6 +55,38 @@ describe("App", () => {
     expect(document.querySelector(".source-message")).toHaveTextContent("Act now, this is urgent.");
   });
 
+  it("puts whitespace-distinct sender IDs on the wire unchanged", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ...fixtureScamResponse, verdict: "unknown", severity: "unknown", evidence: [], module_results: {} }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    render(<App />);
+
+    const add = () => fireEvent.click(screen.getByRole("button", { name: "Add supplied message" }));
+    add();
+    add();
+    const senders = screen.getAllByLabelText("Sender ID");
+    const texts = screen.getAllByLabelText("Message");
+    fireEvent.change(senders[0], { target: { value: "sender-a" } });
+    fireEvent.change(texts[0], { target: { value: "Act now, this is urgent." } });
+    fireEvent.change(senders[1], { target: { value: " sender-a " } });
+    fireEvent.change(texts[1], { target: { value: " Send your OTP to verify. " } });
+    fireEvent.change(screen.getByLabelText("Your sender ID in the supplied history"), { target: { value: " me " } });
+    fireEvent.click(screen.getByRole("button", { name: "Analyze supplied content" }));
+
+    await screen.findByRole("heading", { level: 2, name: "Unable to assess" });
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({
+      urls: [],
+      messages: [
+        { id: "m1", sender_id: "sender-a", text: "Act now, this is urgent." },
+        { id: "m2", sender_id: " sender-a ", text: " Send your OTP to verify. " },
+      ],
+      sender_id: " me ",
+      source: "conversation",
+    });
+  });
+
   it("shows a plain error and no result when the service cannot be reached", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
     render(<App />);

@@ -53,12 +53,12 @@ describe("ScanForm", () => {
     });
   });
 
-  it("includes a non-blank sender ID", () => {
+  it("sends a non-blank protected sender ID exactly as entered", () => {
     const onSubmit = setup();
     type("Message text", "Synthetic message");
     type("Your sender ID in the supplied history", " me ");
     submit();
-    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ sender_id: "me" }));
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ sender_id: " me " }));
   });
 
   it("uses the conversation source only when messages are the sole input", () => {
@@ -74,16 +74,20 @@ describe("ScanForm", () => {
     expect(onSubmit).toHaveBeenLastCalledWith(expect.objectContaining({ source: "manual" }));
   });
 
-  it("sends messages as id, sender_id and trimmed text only, with no timestamp", () => {
-    const onSubmit = setup();
-    fireEvent.click(screen.getByRole("button", { name: "Add supplied message" }));
-    fireEvent.click(screen.getByRole("button", { name: "Add supplied message" }));
+  // Fills the conversation editor with one message per [sender, text] pair.
+  function enterMessages(pairs: Array<[string, string]>) {
+    pairs.forEach(() => fireEvent.click(screen.getByRole("button", { name: "Add supplied message" })));
     const senders = screen.getAllByLabelText("Sender ID");
     const texts = screen.getAllByLabelText("Message");
-    fireEvent.change(senders[0], { target: { value: " sender-a " } });
-    fireEvent.change(texts[0], { target: { value: " Act now. " } });
-    fireEvent.change(senders[1], { target: { value: "sender-b" } });
-    fireEvent.change(texts[1], { target: { value: "Reply" } });
+    pairs.forEach(([sender, text], index) => {
+      fireEvent.change(senders[index], { target: { value: sender } });
+      fireEvent.change(texts[index], { target: { value: text } });
+    });
+  }
+
+  it("sends messages as id, sender_id and text only, with no timestamp", () => {
+    const onSubmit = setup();
+    enterMessages([["sender-a", "Act now."], ["sender-b", "Reply"]]);
     submit();
 
     const payload = onSubmit.mock.calls[0][0];
@@ -92,6 +96,39 @@ describe("ScanForm", () => {
       { id: "m2", sender_id: "sender-b", text: "Reply" },
     ]);
     expect(payload.messages.every((message: object) => !("timestamp" in message))).toBe(true);
+  });
+
+  it("keeps whitespace-distinct sender IDs distinct instead of merging them", () => {
+    const onSubmit = setup();
+    enterMessages([
+      ["sender-a", "Act now, this is urgent."],
+      [" sender-a", "Send your OTP to verify."],
+      ["sender-a ", "Send your OTP to verify."],
+    ]);
+    submit();
+
+    const senders = onSubmit.mock.calls[0][0].messages.map((message: { sender_id: string }) => message.sender_id);
+    expect(senders).toEqual(["sender-a", " sender-a", "sender-a "]);
+    expect(new Set(senders).size).toBe(3);
+  });
+
+  it("matches the protected sender exactly, so only an identical ID can be excluded", () => {
+    const onSubmit = setup();
+    enterMessages([["me", "Act now."], ["me ", "Send your OTP."], [" me ", "Reply."]]);
+    type("Your sender ID in the supplied history", " me ");
+    submit();
+
+    const payload = onSubmit.mock.calls[0][0];
+    expect(payload.sender_id).toBe(" me ");
+    const matching = payload.messages.filter((message: { sender_id: string }) => message.sender_id === payload.sender_id);
+    expect(matching.map((message: { id: string }) => message.id)).toEqual(["m3"]);
+  });
+
+  it("sends message text exactly as entered, including surrounding spaces", () => {
+    const onSubmit = setup();
+    enterMessages([["sender-a", "  Act now.  "]]);
+    submit();
+    expect(onSubmit.mock.calls[0][0].messages[0].text).toBe("  Act now.  ");
   });
 
   it("blocks a message that is only whitespace and names it", () => {

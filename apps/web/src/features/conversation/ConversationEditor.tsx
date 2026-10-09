@@ -50,7 +50,10 @@ export function ConversationEditor({ messages, onChange }: Props) {
   return (
     <fieldset className="conversation-editor">
       <legend>Visible conversation history</legend>
-      <p className="field-hint">Optional. Only the messages entered here are analyzed; the app cannot see other chats.</p>
+      <p className="field-hint">
+        Optional. Only the messages entered here are analyzed; the app cannot see other chats.
+        Sender IDs are compared exactly as typed, including spaces.
+      </p>
       {messages.map((message, index) => (
         <div className="message-row" role="group" aria-labelledby={`message-${message.id}-title`} key={message.id}>
           <div className="message-row-head">

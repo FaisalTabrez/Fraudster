@@ -48,13 +48,16 @@ export function ScanForm({ busy, onSubmit }: Props) {
     await onSubmit({
       text: text.trim() || undefined,
       urls: parsedUrls,
-      // Fresh trimmed copies: the submitted request is a snapshot that later edits cannot change.
+      // Fresh copies, so the submitted request is a snapshot that later edits cannot change.
+      // Sender IDs and message text are sent exactly as entered: the gateway compares sender
+      // IDs exactly, so trimming would merge whitespace-distinct senders or mis-match the
+      // protected sender. trim() above is only used to detect blank values.
       messages: messages.map((message) => ({
         id: message.id,
-        sender_id: message.sender_id.trim(),
-        text: message.text.trim(),
+        sender_id: message.sender_id,
+        text: message.text,
       })),
-      sender_id: senderId.trim() || undefined,
+      sender_id: senderId.trim() ? senderId : undefined,
       source: messages.length && !text.trim() && !parsedUrls.length ? "conversation" : "manual",
     });
   };
