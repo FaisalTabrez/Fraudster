@@ -17,7 +17,7 @@ Everyone branches from the same merged bootstrap. Keep `main` runnable, use shor
 
 Only Faisal changes the frozen contracts after consulting affected owners; types, examples, and fixtures change in the same pull request. Stephen and Likhitha agree the ingestion component boundary before editing shared frontend files. Priya owns the check definitions, but each component owner fixes their own failures. Faisal coordinates root runtime and Compose changes. Faisal and Priya review integration.
 
-`CODEOWNERS` remains comment-only until exact GitHub handles are confirmed. This repository does not claim that branch protection or remote permissions are configured.
+`CODEOWNERS` uses the confirmed collaborator handles and pairs each component owner with Faisal and Priya as integration reviewers. Main-branch protection requires a pull request, one approving code-owner review, and the repository's three CI checks.
 
 ## First handoffs
 
