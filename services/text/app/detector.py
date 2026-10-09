@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 
 ADAPTER_VERSION = "smishx-text-adapter-0.1.0"
@@ -33,6 +33,13 @@ class ProviderEvidence(BaseModel):
     indicator_type: str = Field(pattern=r"^[a-z0-9_]{1,64}$")
     quote: str = Field(min_length=1, max_length=2000)
     explanation: str = Field(min_length=1, max_length=500)
+
+    @field_validator("quote")
+    @classmethod
+    def reject_blank_quote(cls, quote: str) -> str:
+        if not quote.strip():
+            raise ValueError("evidence quote cannot be blank")
+        return quote
 
 
 class ProviderPrediction(BaseModel):
