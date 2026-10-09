@@ -1,20 +1,50 @@
+import { useEffect, useRef } from "react";
+
 import type { ConversationMessage } from "../../types/analysis";
+
+// Limit mirrors contracts/analysis-request.schema.json.
+export const MAX_MESSAGES = 20;
 
 interface Props {
   messages: ConversationMessage[];
   onChange: (messages: ConversationMessage[]) => void;
 }
 
+function idNumber(id: string): number {
+  const match = /^m(\d+)$/.exec(id);
+  return match ? Number(match[1]) : 0;
+}
+
 export function ConversationEditor({ messages, onChange }: Props) {
+  // Highest message number handed out so far. A removed number is never reused, so the
+  // short IDs shown in results always point at one message of the submitted conversation.
+  const issued = useRef(0);
+  const addButton = useRef<HTMLButtonElement>(null);
+  const focusAfterAdd = useRef<string | null>(null);
+  const full = messages.length >= MAX_MESSAGES;
+
+  useEffect(() => {
+    if (focusAfterAdd.current) {
+      document.getElementById(`message-${focusAfterAdd.current}-sender`)?.focus();
+      focusAfterAdd.current = null;
+    }
+  }, [messages]);
+
   const addMessage = () => {
-    onChange([
-      ...messages,
-      { id: crypto.randomUUID(), sender_id: "", text: "" },
-    ]);
+    if (full) return;
+    const next = Math.max(issued.current, ...messages.map((message) => idNumber(message.id))) + 1;
+    issued.current = next;
+    focusAfterAdd.current = `m${next}`;
+    onChange([...messages, { id: `m${next}`, sender_id: "", text: "" }]);
   };
 
   const update = (index: number, patch: Partial<ConversationMessage>) => {
     onChange(messages.map((message, position) => (position === index ? { ...message, ...patch } : message)));
+  };
+
+  const remove = (index: number) => {
+    onChange(messages.filter((_, position) => position !== index));
+    addButton.current?.focus();
   };
 
   return (
@@ -22,42 +52,55 @@ export function ConversationEditor({ messages, onChange }: Props) {
       <legend>Visible conversation history</legend>
       <p className="field-hint">Optional. Only the messages entered here are analyzed; the app cannot see other chats.</p>
       {messages.map((message, index) => (
-        <div className="message-row" key={message.id}>
-          <label>
-            Sender ID
+        <div className="message-row" role="group" aria-labelledby={`message-${message.id}-title`} key={message.id}>
+          <div className="message-row-head">
+            <strong id={`message-${message.id}-title`}>Message <code>{message.id}</code></strong>
+            <button
+              className="ghost-button"
+              type="button"
+              onClick={() => remove(index)}
+              aria-label={`Remove message ${message.id}`}
+            >
+              Remove
+            </button>
+          </div>
+          <div className="field">
+            <label htmlFor={`message-${message.id}-sender`}>Sender ID</label>
             <input
+              id={`message-${message.id}-sender`}
               maxLength={128}
               value={message.sender_id}
               onChange={(event) => update(index, { sender_id: event.target.value })}
               placeholder="sender-a"
               required
             />
-          </label>
-          <label className="message-text">
-            Message
-            <input
+          </div>
+          <div className="field message-text">
+            <label htmlFor={`message-${message.id}-text`}>Message</label>
+            <textarea
+              id={`message-${message.id}-text`}
               maxLength={2000}
+              rows={2}
               value={message.text}
               onChange={(event) => update(index, { text: event.target.value })}
               placeholder="Paste one visible message"
               required
             />
-          </label>
-          <button
-            className="ghost-button"
-            type="button"
-            onClick={() => onChange(messages.filter((_, position) => position !== index))}
-            aria-label={`Remove message ${index + 1}`}
-          >
-            Remove
-          </button>
+          </div>
         </div>
       ))}
-      {messages.length < 20 && (
-        <button className="secondary-button" type="button" onClick={addMessage}>
-          Add supplied message
-        </button>
-      )}
+      <p className="field-hint message-count" aria-live="polite">
+        {messages.length} / {MAX_MESSAGES} messages{full ? ". Remove one to add another." : ""}
+      </p>
+      <button
+        ref={addButton}
+        className="secondary-button"
+        type="button"
+        onClick={addMessage}
+        aria-disabled={full}
+      >
+        Add supplied message
+      </button>
     </fieldset>
   );
 }

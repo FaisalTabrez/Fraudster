@@ -39,11 +39,21 @@ export function ScanForm({ busy, onSubmit }: Props) {
       setLocalError(`URL ${longUrl + 1} is longer than ${MAX_URL_LENGTH.toLocaleString()} characters. Shorten it or remove it.`);
       return;
     }
+    const incomplete = messages.find((message) => !message.sender_id.trim() || !message.text.trim());
+    if (incomplete) {
+      setLocalError(`Message ${incomplete.id} needs both a sender ID and message text.`);
+      return;
+    }
     setLocalError("");
     await onSubmit({
       text: text.trim() || undefined,
       urls: parsedUrls,
-      messages,
+      // Fresh trimmed copies: the submitted request is a snapshot that later edits cannot change.
+      messages: messages.map((message) => ({
+        id: message.id,
+        sender_id: message.sender_id.trim(),
+        text: message.text.trim(),
+      })),
       sender_id: senderId.trim() || undefined,
       source: messages.length && !text.trim() && !parsedUrls.length ? "conversation" : "manual",
     });
