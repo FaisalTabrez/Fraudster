@@ -1,9 +1,16 @@
-# GitHub handles have not been confirmed. Keep this file comment-only until each
-# teammate provides the exact handle. Human ownership is active in
-# docs/team-ownership.md.
-# /services/gateway/ @confirmed-faisal-handle
-# /services/url/ @confirmed-akhilesh-handle
-# /services/text/ @confirmed-zeeshan-handle
-# /apps/web/ @confirmed-stephen-handle
-# /services/ocr/ @confirmed-likhitha-handle
-# /evaluation/ @confirmed-priya-handle
+# Integration owners provide a review path for shared and cross-component work.
+* @FaisalTabrez @devisripriyanam
+
+# Component owners remain paired with the integration reviewers so an author's
+# own pull request always has another eligible code owner available.
+/services/gateway/ @FaisalTabrez @devisripriyanam
+/contracts/ @FaisalTabrez @devisripriyanam
+/services/url/ @akhileshkancharla @FaisalTabrez @devisripriyanam
+/services/text/ @Zeeshan1786 @FaisalTabrez @devisripriyanam
+/apps/web/ @Wknd-0424 @FaisalTabrez @devisripriyanam
+/apps/web/src/features/ingestion/ @likhithayepalagunta-19 @Wknd-0424 @FaisalTabrez @devisripriyanam
+/services/ocr/ @likhithayepalagunta-19 @FaisalTabrez @devisripriyanam
+/evaluation/ @devisripriyanam @FaisalTabrez
+/tests/ @devisripriyanam @FaisalTabrez
+/.github/ @FaisalTabrez @devisripriyanam
+/compose.yaml @FaisalTabrez @devisripriyanam
