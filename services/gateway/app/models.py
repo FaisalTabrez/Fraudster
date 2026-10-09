@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator, model_validator
 
 
 FiniteStrictFloat = Annotated[float, Field(strict=True, allow_inf_nan=False)]
@@ -45,12 +45,19 @@ class AnalysisStatus(StrEnum):
 
 
 class Message(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    model_config = ConfigDict(extra="forbid")
 
     id: str = Field(min_length=1, max_length=128)
     sender_id: str = Field(min_length=1, max_length=128)
     text: str = Field(min_length=1, max_length=2000)
     timestamp: datetime | None = None
+
+    @field_validator("id", "sender_id", "text")
+    @classmethod
+    def reject_blank_fields(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("message fields cannot be blank")
+        return value
 
     @model_validator(mode="before")
     @classmethod
@@ -67,7 +74,7 @@ UrlValue = Annotated[str, Field(min_length=1, max_length=2048)]
 
 
 class AnalysisRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    model_config = ConfigDict(extra="forbid")
 
     text: str | None = Field(default=None, max_length=10000)
     urls: list[UrlValue] = Field(default_factory=list, max_length=5)
@@ -75,6 +82,20 @@ class AnalysisRequest(BaseModel):
     sender_id: str | None = Field(default=None, min_length=1, max_length=128)
     conversation_id: str | None = Field(default=None, min_length=1, max_length=128)
     source: Source
+
+    @field_validator("sender_id", "conversation_id")
+    @classmethod
+    def reject_blank_identifiers(cls, value: str | None) -> str | None:
+        if value is not None and not value.strip():
+            raise ValueError("identifiers cannot be blank")
+        return value
+
+    @field_validator("urls")
+    @classmethod
+    def reject_blank_urls(cls, urls: list[str]) -> list[str]:
+        if any(not url.strip() for url in urls):
+            raise ValueError("URLs cannot be blank")
+        return urls
 
     @model_validator(mode="before")
     @classmethod
@@ -99,7 +120,7 @@ class AnalysisRequest(BaseModel):
 
 
 class Evidence(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    model_config = ConfigDict(extra="forbid")
 
     id: str = Field(min_length=1, max_length=128)
     indicator_type: str = Field(min_length=1, max_length=64)
@@ -111,6 +132,8 @@ class Evidence(BaseModel):
 
     @model_validator(mode="after")
     def require_grounding(self) -> Evidence:
+        if self.quote is not None and not self.quote.strip():
+            raise ValueError("evidence quote cannot be blank")
         if isinstance(self.observed_value, str) and not self.observed_value.strip():
             raise ValueError("evidence observed value cannot be blank")
         if self.quote is None and self.observed_value is None:

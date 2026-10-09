@@ -13,8 +13,9 @@ The packaged browser calls these routes through the same-origin `/api` prefix. T
 
 `text` is optional and capped at 10,000 characters. `urls` contains at most five strings of at most 2,048 characters. `messages` contains at most 20 objects with unique request-local `id`, `sender_id`, text up to 2,000 characters, and an optional timestamp. `sender_id` identifies the protected user's sender ID when known. `conversation_id` is client correlation only, not authentication or proof of identity. `source` is one of `manual`, `screenshot`, `qr`, or `conversation`.
 
-At least one nonempty input is required. Limits apply to the raw submitted strings before whitespace normalization. Unknown fields are rejected. Validation and URL extraction do not dereference links.
+At least one nonempty input is required. Length limits apply to the raw submitted strings. Required message fields, URL strings, and supplied IDs must contain a non-whitespace character. Unknown fields are rejected. Validation and URL extraction do not dereference links.
 Message IDs must be unique within a request; the gateway enforces this cross-item rule because JSON Schema cannot express uniqueness of one object property within an array.
+Identifier values are opaque: the gateway preserves whitespace within and around nonblank `id`, `sender_id`, and `conversation_id` values. Sender grouping, protected-user exclusion, and evidence citations use those exact supplied values.
 
 ## Analyze response
 

@@ -120,19 +120,19 @@ async def analyze(payload: AnalysisRequest, request: Request) -> AnalysisRespons
         results["conversation"] = evaluate_conversation(payload.messages, payload.sender_id)
 
     if settings.demo_mode:
-        if payload.text:
+        if payload.text and payload.text.strip():
             results["text"] = fixture_text_result(payload.text)
         if urls:
             results["url"] = fixture_url_result(urls)
     else:
         tasks: dict[str, Awaitable[ModuleResult]] = {}
-        if payload.text:
+        if payload.text and payload.text.strip():
             tasks["text"] = clients.text(payload.text)
         if urls:
             tasks["url"] = clients.url(urls)
         live_results = await _collect_live_results(tasks, settings.analysis_timeout_seconds)
         for name, result in live_results.items():
-            inputs = [payload.text] if name == "text" and payload.text else urls
+            inputs = [payload.text] if name == "text" and payload.text and payload.text.strip() else urls
             results[name] = _ground_detector_result(name, result, inputs)
 
     response_status = analysis_status(results)

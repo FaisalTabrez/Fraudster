@@ -404,6 +404,66 @@ async def test_conversation_excludes_protected_sender_and_grounds_warning() -> N
 
 
 @pytest.mark.asyncio
+async def test_whitespace_distinct_sender_ids_do_not_share_signals() -> None:
+    app = create_app(Settings(demo_mode=False), detectors=UnavailableClients())
+    response = await request(app, "POST", "/v1/analyze", json={
+        "source": "conversation",
+        "messages": [
+            {"id": " urgent-id ", "sender_id": "sender-a", "text": "Act now, this is urgent."},
+            {"id": " secret-id ", "sender_id": " sender-a ", "text": "Send your OTP to verify."},
+        ],
+    })
+    assert response.status_code == 200
+    assert response.json()["verdict"] == "unknown"
+    assert response.json()["evidence"] == []
+
+
+@pytest.mark.asyncio
+async def test_whitespace_distinct_protected_sender_and_exact_message_ids() -> None:
+    app = create_app(Settings(demo_mode=False), detectors=UnavailableClients())
+    response = await request(app, "POST", "/v1/analyze", json={
+        "source": "conversation",
+        "sender_id": "sender-a",
+        "messages": [
+            {"id": "protected", "sender_id": "sender-a", "text": "Act now and send your OTP."},
+            {"id": " urgent-id ", "sender_id": " sender-a ", "text": "  Act now, this is urgent.  "},
+            {"id": " secret-id ", "sender_id": " sender-a ", "text": "Send your OTP to verify."},
+        ],
+    })
+    assert response.status_code == 200
+    body = response.json()
+    assert body["verdict"] == "suspected_scam"
+    assert {item["message_id"] for item in body["evidence"]} == {" urgent-id ", " secret-id "}
+    assert all(item["message_id"] != "protected" for item in body["evidence"])
+    assert next(item["quote"] for item in body["evidence"] if item["message_id"] == " urgent-id ") == "  Act now, this is urgent.  "
+
+
+@pytest.mark.asyncio
+async def test_whitespace_distinct_message_ids_remain_unique() -> None:
+    app = create_app(Settings(demo_mode=True))
+    response = await request(app, "POST", "/v1/analyze", json={
+        "source": "conversation",
+        "messages": [
+            {"id": "m1", "sender_id": "sender-a", "text": "This is urgent."},
+            {"id": " m1 ", "sender_id": "sender-a", "text": "Send your OTP to verify."},
+        ],
+    })
+    assert response.status_code == 200
+    assert {item["message_id"] for item in response.json()["evidence"]} == {"m1", " m1 "}
+
+
+@pytest.mark.asyncio
+async def test_blank_top_level_text_is_not_an_applicable_check_when_url_is_supplied() -> None:
+    app = create_app(Settings(demo_mode=True))
+    response = await request(app, "POST", "/v1/analyze", json={
+        "source": "manual", "text": "   ", "urls": ["https://example.test"],
+    })
+    assert response.status_code == 200
+    assert response.json()["coverage"]["text"] == "not_applicable"
+    assert response.json()["coverage"]["url"] == "complete"
+
+
+@pytest.mark.asyncio
 async def test_readiness_is_independent_from_liveness() -> None:
     app = create_app(Settings(demo_mode=False))
     assert (await request(app, "GET", "/health/live")).status_code == 200
