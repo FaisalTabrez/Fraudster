@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException, Response, status
-from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Annotated
+
+from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .detector import DetectorUnavailable, UrlDetector
 
@@ -17,8 +20,14 @@ class PredictRequest(BaseModel):
     @field_validator("urls", mode="before")
     @classmethod
     def check_raw_url_lengths(cls, value: object) -> object:
-        if isinstance(value, list) and any(isinstance(url, str) and len(url) > 2048 for url in value):
-            raise ValueError("URL exceeds 2048 characters")
+        if isinstance(value, list):
+            for url in value:
+                if not isinstance(url, str):
+                    continue
+                if len(url) > 2048:
+                    raise ValueError("URL exceeds 2048 characters")
+                if any(0xD800 <= ord(character) <= 0xDFFF for character in url):
+                    raise ValueError("URL contains non-scalar Unicode")
         return value
 
     @field_validator("urls")
@@ -33,6 +42,11 @@ def create_app(detector: UrlDetector | None = None) -> FastAPI:
     resolved = detector or UrlDetector()
     app = FastAPI(title="Fraudster URL detector", version="0.1.0")
     app.state.detector = resolved
+
+    @app.exception_handler(RequestValidationError)
+    async def invalid_request(_request: Request, _exc: RequestValidationError) -> JSONResponse:
+        # Never echo submitted URL strings, including malformed Unicode, in errors.
+        return JSONResponse(status_code=422, content={"detail": "Invalid URL request."})
 
     @app.get("/health/live")
     async def live() -> dict[str, object]:

@@ -123,3 +123,27 @@ async def test_maximum_length_and_duplicate_urls_keep_valid_unique_evidence() ->
     assert len(body["evidence"]) == 2
     assert len({item["id"] for item in body["evidence"]}) == 2
     assert all(item["quote"] == url[:2000] for item in body["evidence"])
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("escaped", [b"\\ud800", b"\\udc00"])
+async def test_unpaired_surrogate_url_is_rejected_without_internal_error(escaped: bytes) -> None:
+    # Send escaped JSON bytes because a Python HTTP client may reject raw surrogates first.
+    body = b'{"urls":["' + escaped + b'"]}'
+    response = await request(
+        create_app(), "POST", "/predict", content=body,
+        headers={"content-type": "application/json"},
+    )
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Invalid URL request."}
+    assert "Traceback" not in response.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("url", ["https://göögle.example/path", "https://example.test/😀"])
+async def test_valid_unicode_scalar_url_is_still_accepted(url: str) -> None:
+    response = await request(
+        create_app(), "POST", "/predict", json={"urls": [url]},
+    )
+    assert response.status_code == 200
+    ModuleResult.model_validate(response.json())
