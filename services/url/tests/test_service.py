@@ -203,6 +203,7 @@ async def test_score_types_have_distinct_names_and_actual_values() -> None:
     "http://", "https:///missing-host", "ftp://example.com", "javascript:alert(1)",
     "http://example.com:abc", "https://example.com:65536", "http://[not-ipv6]/",
     "http://[::1]bad/path", "http://[::1]:/", "https://example.com/path with space",
+    "https://evil.xyz\\google.com/login", "https://example.com\\path",
 ])
 async def test_malformed_urls_are_rejected_without_echo(url: str) -> None:
     response = await request(create_app(), "POST", "/predict", json={"urls": [url]})

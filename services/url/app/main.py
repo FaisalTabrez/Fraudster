@@ -36,6 +36,10 @@ class PredictRequest(BaseModel):
     @classmethod
     def reject_malformed_urls(cls, urls: list[str]) -> list[str]:
         for url in urls:
+            # Browsers treat backslashes in HTTP(S) URLs as separators. The
+            # pinned string parser does not, which could change the host.
+            if "\\" in url:
+                raise ValueError("URL contains a backslash")
             parsed = parse_url(url)
             host = parsed.host
             if parsed.scheme not in {"http", "https"} or not host:
