@@ -346,6 +346,40 @@ def test_suspected_scam_module_requires_grounded_evidence() -> None:
         )
 
 
+@pytest.mark.parametrize("non_finite", [float("nan"), float("inf"), float("-inf")])
+def test_non_finite_detector_numbers_are_rejected(non_finite: float) -> None:
+    with pytest.raises(ValueError, match="finite number"):
+        Evidence(
+            id="non-finite-evidence",
+            indicator_type="test",
+            source_module="url",
+            observed_value=non_finite,
+            explanation="Detector evidence must remain valid JSON.",
+        )
+
+    with pytest.raises(ValueError, match="finite number"):
+        ModuleResult(
+            status=CoverageStatus.COMPLETE,
+            version="test-1",
+            raw_score_type="test_result",
+            verdict=Verdict.UNKNOWN,
+            severity=Severity.UNKNOWN,
+            score=non_finite,
+        )
+
+
+@pytest.mark.parametrize("observed_value", [0, 0.0, False])
+def test_zero_like_observed_values_are_valid_grounding(observed_value: int | float | bool) -> None:
+    evidence = Evidence(
+        id="finite-evidence",
+        indicator_type="test",
+        source_module="url",
+        observed_value=observed_value,
+        explanation="Zero and false are concrete observed values.",
+    )
+    assert evidence.observed_value == observed_value
+
+
 @pytest.mark.asyncio
 async def test_readiness_is_independent_from_liveness() -> None:
     app = create_app(Settings(demo_mode=False))
