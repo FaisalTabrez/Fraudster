@@ -4,7 +4,10 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, FiniteFloat, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, model_validator
+
+
+FiniteStrictFloat = Annotated[float, Field(strict=True, allow_inf_nan=False)]
 
 
 class Source(StrEnum):
@@ -79,7 +82,7 @@ class Evidence(BaseModel):
     indicator_type: str = Field(min_length=1, max_length=64)
     source_module: Literal["text", "url", "conversation", "reputation"]
     quote: str | None = Field(default=None, min_length=1, max_length=2000)
-    observed_value: str | int | FiniteFloat | bool | None = None
+    observed_value: str | StrictInt | FiniteStrictFloat | bool | None = None
     message_id: str | None = Field(default=None, max_length=128)
     explanation: str = Field(min_length=1, max_length=500)
 
@@ -99,7 +102,7 @@ class ModuleResult(BaseModel):
     raw_score_type: str
     verdict: Verdict = Verdict.UNKNOWN
     severity: Severity = Severity.UNKNOWN
-    score: FiniteFloat | int | None = None
+    score: StrictInt | FiniteStrictFloat | None = None
     evidence: list[Evidence] = Field(default_factory=list)
     detail: str | None = Field(default=None, max_length=300)
     fixture_generated: bool = False

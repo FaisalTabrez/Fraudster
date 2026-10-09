@@ -380,6 +380,19 @@ def test_zero_like_observed_values_are_valid_grounding(observed_value: int | flo
     assert evidence.observed_value == observed_value
 
 
+@pytest.mark.parametrize("invalid_score", [True, False, "1", "0.5"])
+def test_detector_scores_do_not_coerce_non_numeric_json_values(invalid_score: object) -> None:
+    with pytest.raises(ValueError):
+        ModuleResult(
+            status=CoverageStatus.COMPLETE,
+            version="test-1",
+            raw_score_type="test_result",
+            verdict=Verdict.UNKNOWN,
+            severity=Severity.UNKNOWN,
+            score=invalid_score,
+        )
+
+
 @pytest.mark.asyncio
 async def test_readiness_is_independent_from_liveness() -> None:
     app = create_app(Settings(demo_mode=False))
