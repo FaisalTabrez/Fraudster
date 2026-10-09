@@ -147,7 +147,14 @@ class TextDetector:
             return self._validated_result(text, prediction)
         except DetectorUnavailable:
             raise
-        except (KeyError, IndexError, TypeError, json.JSONDecodeError, ValidationError) as exc:
+        except (
+            KeyError,
+            IndexError,
+            TypeError,
+            UnicodeDecodeError,
+            json.JSONDecodeError,
+            ValidationError,
+        ) as exc:
             raise DetectorUnavailable(
                 "invalid_provider_response",
                 "The text provider returned output that did not match the required schema.",

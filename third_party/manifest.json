@@ -10,7 +10,7 @@
       "license_verification": "verified from LICENSE at the recorded commit",
       "copied_file_list": ["third_party/licenses/SmishX-LICENSE.txt"],
       "model_provenance": "No model asset is bundled. The inspected source calls an externally configured OpenAI model.",
-      "local_changes": "Implemented a new text-only structured-output adapter informed by the reviewed category guidance. No upstream runtime code was copied. The adapter separates legitimate, spam, suspected_scam, and unknown; validates literal evidence quotes; records model and prompt versions; never dereferences URLs; and writes no output files.",
+      "local_changes": "Implemented a new text-only structured-output adapter informed by the reviewed category guidance. No upstream runtime code was copied. The adapter separates legitimate, spam, suspected_scam, and unknown; validates literal evidence quotes; maps missing configuration, provider failures, invalid JSON, and deadlines to explicit unavailable states; records model and prompt versions; never dereferences URLs; and writes no output files.",
       "verification_notes": [
         "The inspected source combines phishing and spam into a boolean category.",
         "The final detection exception returns category true.",
