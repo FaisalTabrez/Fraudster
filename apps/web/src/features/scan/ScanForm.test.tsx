@@ -74,6 +74,36 @@ describe("ScanForm", () => {
     expect(onSubmit).toHaveBeenLastCalledWith(expect.objectContaining({ source: "manual" }));
   });
 
+  it("sends messages as id, sender_id and trimmed text only, with no timestamp", () => {
+    const onSubmit = setup();
+    fireEvent.click(screen.getByRole("button", { name: "Add supplied message" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add supplied message" }));
+    const senders = screen.getAllByLabelText("Sender ID");
+    const texts = screen.getAllByLabelText("Message");
+    fireEvent.change(senders[0], { target: { value: " sender-a " } });
+    fireEvent.change(texts[0], { target: { value: " Act now. " } });
+    fireEvent.change(senders[1], { target: { value: "sender-b" } });
+    fireEvent.change(texts[1], { target: { value: "Reply" } });
+    submit();
+
+    const payload = onSubmit.mock.calls[0][0];
+    expect(payload.messages).toEqual([
+      { id: "m1", sender_id: "sender-a", text: "Act now." },
+      { id: "m2", sender_id: "sender-b", text: "Reply" },
+    ]);
+    expect(payload.messages.every((message: object) => !("timestamp" in message))).toBe(true);
+  });
+
+  it("blocks a message that is only whitespace and names it", () => {
+    const onSubmit = setup();
+    fireEvent.click(screen.getByRole("button", { name: "Add supplied message" }));
+    type("Sender ID", "sender-a");
+    type("Message", "   ");
+    submit();
+    expect(screen.getByRole("alert")).toHaveTextContent("Message m1 needs both a sender ID and message text.");
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it("describes the character counter separately from the text label", () => {
     setup();
     expect(screen.getByLabelText("Message text")).toHaveAccessibleDescription("0 / 10,000 characters");
