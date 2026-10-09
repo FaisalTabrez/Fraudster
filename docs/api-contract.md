@@ -36,7 +36,7 @@ Conversation rules group messages by `sender_id`; evidence from different sender
 
 ## Internal route
 
-Text and URL services expose `POST /predict` plus health routes. Their current predictor returns HTTP 503 because the reviewed upstream adapters are not copied or configured. Future adapters must return the gateway `ModuleResult` shape.
+Text and URL services expose `POST /predict` plus health routes. The text predictor still returns HTTP 503 until its reviewed adapter is configured. The URL predictor uses the pinned string-only extractor, rules, and JSON model and returns the gateway `ModuleResult` shape; it never fetches the submitted URL. Its 0–100 blended policy score is not the aggregate `risk_score` or a calibrated fraud probability.
 
 ## Extraction boundary
 

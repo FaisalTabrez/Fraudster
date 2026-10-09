@@ -1,3 +1,3 @@
 # Third party notices
 
-No upstream source or model file is copied into the bootstrap, so this directory currently contains no redistributed license text. Before an owner copies an upstream file or model asset, they must add the corresponding notice here and update `third_party/manifest.json` with the exact copied paths and local changes.
+The URL adapter includes source and plain JSON model parameters from the pinned MIT-licensed phishing-url-detector commit. Its complete notice is in `phishing-url-detector-LICENSE.txt`. The model's training-data attribution is in `PhiUSIIL-ATTRIBUTION.md`. Exact copied paths and local changes are recorded in `third_party/manifest.json`. Other upstream assets require their own notice and manifest update before copying.
