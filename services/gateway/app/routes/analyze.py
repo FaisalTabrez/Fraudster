@@ -6,7 +6,7 @@ import time
 from collections.abc import Awaitable
 from uuid import uuid4
 
-from fastapi import APIRouter, Request, Response, status
+from fastapi import APIRouter, Request
 
 from ..clients.detectors import not_applicable_result, unavailable_result
 from ..models import (
@@ -159,15 +159,3 @@ async def analyze(payload: AnalysisRequest, request: Request) -> AnalysisRespons
         processing_ms=max(0, round((time.perf_counter() - started) * 1000)),
         fixture_generated=settings.demo_mode,
     )
-
-
-@router.post("/extract", status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
-async def extract_unavailable(response: Response) -> dict[str, object]:
-    response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-    return {
-        "status": "unavailable",
-        "text": None,
-        "boxes": [],
-        "image": None,
-        "detail": "OCR is an optional P1 adapter and is not installed in the bootstrap.",
-    }

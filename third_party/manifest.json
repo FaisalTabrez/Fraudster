@@ -49,24 +49,64 @@
     {
       "name": "PaddleOCR",
       "repository_url": "https://github.com/PaddlePaddle/PaddleOCR",
-      "immutable_commit_or_release": "dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf",
+      "immutable_commit_or_release": "v2.9.1 (PyPI paddleocr==2.9.1)",
       "inspected_license": "Apache-2.0",
-      "license_verification": "verified from LICENSE at the recorded commit",
-      "copied_file_list": [],
-      "model_provenance": null,
-      "local_changes": "None; CPU model selection, download, compatibility, and language coverage are not yet verified.",
-      "verification_notes": ["The inspected pyproject.toml declares Python >=3.8; no OCR dependency is installed in P0."]
+      "license_verification": "Apache-2.0 LICENSE in installed paddleocr 2.9.1 distribution",
+      "copied_file_list": [
+        "third_party/licenses/PaddleOCR-2.9.1-LICENSE"
+      ],
+      "model_provenance": "Optional upstream en_PP-OCRv3_det_infer, en_PP-OCRv4_rec_infer and ch_ppocr_mobile_v2.0_cls_infer weights referenced by PaddleOCR 2.9.1. Explicit setup downloads to ignored services/ocr/models; no weights redistributed in Git.",
+      "local_changes": "Original CPU adapter and explicit download command; no upstream implementation copied.",
+      "verification_notes": [
+        "English recognition only in this configuration; PaddlePaddle CPU 2.6.2 and numpy 1.26.4 pinned.",
+        "Service checks prepared files before constructing PaddleOCR; missing assets/dependencies are unavailable, never downloaded during requests."
+      ]
     },
     {
       "name": "zxing-js browser",
       "repository_url": "https://github.com/zxing-js/browser",
-      "immutable_commit_or_release": "9ad027d88d4533bd6d29f9d8d7e517e23cd361ff",
+      "immutable_commit_or_release": "npm @zxing/browser@0.2.1 (lockfile integrity recorded)",
       "inspected_license": "MIT",
-      "license_verification": "verified from LICENSE and package.json at the recorded commit",
-      "copied_file_list": [],
+      "license_verification": "MIT LICENSE in installed @zxing/browser 0.2.1 distribution",
+      "copied_file_list": [
+        "third_party/licenses/zxing-browser-0.2.1-LICENSE"
+      ],
       "model_provenance": null,
-      "local_changes": "None; QR decoding is deferred to P1 and the package is not installed in this scaffold.",
-      "verification_notes": ["The inspected package version is 0.2.1 with @zxing/library as a peer dependency."]
+      "local_changes": "Original local blob-image QR ingestion; no upstream implementation copied.",
+      "verification_notes": [
+        "Pinned peer @zxing/library 0.23.0 satisfies ^0.23.0.",
+        "Decoder receives local image elements only, never decoded URLs."
+      ]
+    },
+    {
+      "name": "zxing-js library",
+      "repository_url": "https://github.com/zxing-js/library",
+      "immutable_commit_or_release": "npm @zxing/library@0.23.0 (lockfile integrity recorded)",
+      "inspected_license": "Apache-2.0",
+      "license_verification": "Apache-2.0 LICENSE in installed package",
+      "copied_file_list": [
+        "third_party/licenses/zxing-library-0.23.0-LICENSE"
+      ],
+      "model_provenance": null,
+      "local_changes": "Dependency only; no upstream implementation copied.",
+      "verification_notes": [
+        "Used by browser QR decoder and synthetic encode/decode tests."
+      ]
+    },
+    {
+      "name": "PaddlePaddle CPU",
+      "repository_url": "https://github.com/PaddlePaddle/Paddle",
+      "immutable_commit_or_release": "paddlepaddle==2.6.2",
+      "inspected_license": "Apache-2.0",
+      "license_verification": "Apache-2.0 LICENSE in installed wheel",
+      "copied_file_list": [
+        "third_party/licenses/PaddlePaddle-2.6.2-LICENSE"
+      ],
+      "model_provenance": null,
+      "local_changes": "Optional inference dependency only; no implementation copied.",
+      "verification_notes": [
+        "CPU package; no CUDA or GPU runtime required."
+      ]
     }
   ]
 }
