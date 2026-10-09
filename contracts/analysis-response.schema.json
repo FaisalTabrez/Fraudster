@@ -38,6 +38,15 @@
     "processing_ms": { "type": "integer", "minimum": 0 },
     "fixture_generated": { "type": "boolean" }
   },
+  "allOf": [
+    {
+      "if": {
+        "required": ["verdict"],
+        "properties": { "verdict": { "const": "suspected_scam" } }
+      },
+      "then": { "properties": { "evidence": { "minItems": 1 } } }
+    }
+  ],
   "$defs": {
     "verdict": { "enum": ["legitimate", "spam", "suspected_scam", "unknown"] },
     "severity": { "enum": ["low", "medium", "high", "unknown"] },
@@ -50,11 +59,28 @@
         "id": { "type": "string", "minLength": 1, "maxLength": 128 },
         "indicator_type": { "type": "string", "minLength": 1, "maxLength": 64 },
         "source_module": { "enum": ["text", "url", "conversation", "reputation"] },
-        "quote": { "type": ["string", "null"], "maxLength": 2000 },
+        "quote": { "type": ["string", "null"], "minLength": 1, "maxLength": 2000 },
         "observed_value": { "type": ["string", "number", "integer", "boolean", "null"] },
         "message_id": { "type": ["string", "null"], "maxLength": 128 },
         "explanation": { "type": "string", "minLength": 1, "maxLength": 500 }
-      }
+      },
+      "anyOf": [
+        {
+          "required": ["quote"],
+          "properties": { "quote": { "type": "string", "minLength": 1 } }
+        },
+        {
+          "required": ["observed_value"],
+          "properties": {
+            "observed_value": {
+              "anyOf": [
+                { "type": "string", "minLength": 1 },
+                { "type": ["number", "integer", "boolean"] }
+              ]
+            }
+          }
+        }
+      ]
     },
     "moduleResult": {
       "type": "object",
@@ -70,7 +96,16 @@
         "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } },
         "detail": { "type": ["string", "null"], "maxLength": 300 },
         "fixture_generated": { "type": "boolean" }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["verdict"],
+            "properties": { "verdict": { "const": "suspected_scam" } }
+          },
+          "then": { "properties": { "evidence": { "minItems": 1 } } }
+        }
+      ]
     }
   }
 }

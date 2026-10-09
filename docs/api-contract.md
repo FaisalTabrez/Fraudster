@@ -21,11 +21,15 @@ At least one nonempty input is required. Unknown fields are rejected. Validation
 
 `risk_score` is null during bootstrap and `probability_calibrated` is false. Per-module scores may appear only with a named `raw_score_type`; fixture policy points and future URL heuristic values must not be relabeled as fraud probability.
 
-Each evidence item has a stable ID, indicator type, source module, explanation, and either a quote or actual observed value when available. Conversation evidence carries the source message ID. A suspected-scam verdict must have evidence.
+Each evidence item has a stable ID, indicator type, source module, explanation, and at least one grounded value: a nonempty quote from submitted content or an actual observed value. Conversation evidence carries the exact source message ID. Both module-level and aggregate suspected-scam verdicts are rejected unless they include grounded evidence.
 
 Coverage always includes text, URL, conversation, and reputation. Values are `complete`, `not_applicable`, `not_run`, or `unavailable`. Missing checks are never converted into zero risk.
 
 `module_results` preserves detector version, status, raw score type, optional score, evidence, and a safe detail. It never includes provider secrets or raw internal stack traces. `fixture_generated` marks the whole response and each fixture detector result.
+
+Applicable text and URL detector calls start concurrently and share the configured overall analysis deadline. A failed or timed-out detector is recorded as unavailable without discarding completed module results. If every applicable detector is unavailable, the aggregate status is `unavailable` and its verdict and severity are both `unknown`.
+
+Conversation rules group messages by `sender_id`; evidence from different senders is never combined into one escalation. When the top-level `sender_id` is supplied, it identifies the protected user and those messages are excluded from escalation rules.
 
 ## Internal route
 

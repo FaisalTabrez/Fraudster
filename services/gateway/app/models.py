@@ -73,15 +73,22 @@ class AnalysisRequest(BaseModel):
 
 
 class Evidence(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     id: str = Field(min_length=1, max_length=128)
     indicator_type: str = Field(min_length=1, max_length=64)
     source_module: Literal["text", "url", "conversation", "reputation"]
-    quote: str | None = Field(default=None, max_length=2000)
+    quote: str | None = Field(default=None, min_length=1, max_length=2000)
     observed_value: str | int | float | bool | None = None
     message_id: str | None = Field(default=None, max_length=128)
     explanation: str = Field(min_length=1, max_length=500)
+
+    @model_validator(mode="after")
+    def require_grounding(self) -> Evidence:
+        observed_is_blank = isinstance(self.observed_value, str) and not self.observed_value
+        if self.quote is None and (self.observed_value is None or observed_is_blank):
+            raise ValueError("evidence requires a quote or observed value")
+        return self
 
 
 class ModuleResult(BaseModel):
@@ -96,6 +103,12 @@ class ModuleResult(BaseModel):
     evidence: list[Evidence] = Field(default_factory=list)
     detail: str | None = Field(default=None, max_length=300)
     fixture_generated: bool = False
+
+    @model_validator(mode="after")
+    def require_scam_evidence(self) -> ModuleResult:
+        if self.verdict == Verdict.SUSPECTED_SCAM and not self.evidence:
+            raise ValueError("suspected-scam module results require grounded evidence")
+        return self
 
 
 class Coverage(BaseModel):
@@ -120,3 +133,9 @@ class AnalysisResponse(BaseModel):
     versions: dict[str, str]
     processing_ms: int = Field(ge=0)
     fixture_generated: bool = False
+
+    @model_validator(mode="after")
+    def require_scam_evidence(self) -> AnalysisResponse:
+        if self.verdict == Verdict.SUSPECTED_SCAM and not self.evidence:
+            raise ValueError("suspected-scam responses require grounded evidence")
+        return self

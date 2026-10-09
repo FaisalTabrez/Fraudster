@@ -52,6 +52,32 @@ class PartialClients:
         )
 
 
+class ConcurrentClients:
+    def __init__(self) -> None:
+        self.started: set[str] = set()
+        self.both_started = asyncio.Event()
+
+    async def _complete(self, name: str) -> ModuleResult:
+        self.started.add(name)
+        if self.started == {"text", "url"}:
+            self.both_started.set()
+        await asyncio.wait_for(self.both_started.wait(), timeout=0.25)
+        return ModuleResult(
+            status=CoverageStatus.COMPLETE,
+            version=f"test-{name}-1",
+            raw_score_type="test_result",
+            verdict=Verdict.LEGITIMATE,
+            severity=Severity.LOW,
+            score=0,
+        )
+
+    async def text(self, _text: str) -> ModuleResult:
+        return await self._complete("text")
+
+    async def url(self, _urls: list[str]) -> ModuleResult:
+        return await self._complete("url")
+
+
 @pytest.mark.asyncio
 async def test_fixture_mode_is_explicit_and_never_returns_aggregate_score() -> None:
     app = create_app(Settings(demo_mode=True))
@@ -83,14 +109,46 @@ async def test_all_applicable_detectors_unavailable_is_unknown() -> None:
         app,
         "POST",
         "/v1/analyze",
-        json={"text": "hello", "urls": [], "messages": [], "source": "manual"},
+        json={
+            "text": "hello",
+            "urls": ["https://example.test"],
+            "messages": [],
+            "source": "manual",
+        },
     )
     payload = response.json()
     assert payload["status"] == "unavailable"
     assert payload["verdict"] == "unknown"
     assert payload["severity"] == "unknown"
+    assert payload["risk_score"] is None
     assert payload["coverage"]["text"] == "unavailable"
-    assert payload["coverage"]["url"] == "not_applicable"
+    assert payload["coverage"]["url"] == "unavailable"
+
+
+@pytest.mark.asyncio
+async def test_applicable_detector_calls_start_concurrently() -> None:
+    clients = ConcurrentClients()
+    app = create_app(
+        Settings(demo_mode=False, analysis_timeout_seconds=0.5),
+        detectors=clients,
+    )
+    response = await request(
+        app,
+        "POST",
+        "/v1/analyze",
+        json={
+            "text": "hello",
+            "urls": ["https://example.test"],
+            "messages": [],
+            "source": "manual",
+        },
+    )
+    payload = response.json()
+    assert response.status_code == 200
+    assert clients.started == {"text", "url"}
+    assert payload["status"] == "complete"
+    assert payload["coverage"]["text"] == "complete"
+    assert payload["coverage"]["url"] == "complete"
 
 
 @pytest.mark.asyncio
@@ -128,6 +186,81 @@ async def test_wrong_request_shape_is_rejected() -> None:
 
 
 @pytest.mark.asyncio
+async def test_request_accepts_documented_maximum_lengths() -> None:
+    app = create_app(Settings(demo_mode=False), detectors=UnavailableClients())
+    url_prefix = "https://example.test/"
+    urls = [
+        f"{url_prefix}{index}{'u' * (2048 - len(url_prefix) - 1)}"
+        for index in range(5)
+    ]
+    messages = [
+        {
+            "id": f"{index:02d}{'m' * 126}",
+            "sender_id": "s" * 128,
+            "text": "n" * 2000,
+        }
+        for index in range(20)
+    ]
+    response = await request(
+        app,
+        "POST",
+        "/v1/analyze",
+        json={
+            "text": "t" * 10000,
+            "urls": urls,
+            "messages": messages,
+            "sender_id": "p" * 128,
+            "conversation_id": "c" * 128,
+            "source": "conversation",
+        },
+    )
+    assert response.status_code == 200
+    assert response.json()["risk_score"] is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"text": "t" * 10001, "source": "manual"},
+        {"urls": [f"https://example{index}.test" for index in range(6)], "source": "manual"},
+        {"urls": ["u" * 2049], "source": "manual"},
+        {
+            "messages": [
+                {"id": f"m{index}", "sender_id": "sender", "text": "neutral"}
+                for index in range(21)
+            ],
+            "source": "conversation",
+        },
+        {
+            "messages": [{"id": "m1", "sender_id": "sender", "text": "t" * 2001}],
+            "source": "conversation",
+        },
+        {
+            "messages": [{"id": "m" * 129, "sender_id": "sender", "text": "neutral"}],
+            "source": "conversation",
+        },
+        {
+            "messages": [{"id": "m1", "sender_id": "s" * 129, "text": "neutral"}],
+            "source": "conversation",
+        },
+        {"text": "neutral", "conversation_id": "c" * 129, "source": "manual"},
+        {
+            "messages": [
+                {"id": "duplicate", "sender_id": "sender", "text": "first"},
+                {"id": "duplicate", "sender_id": "sender", "text": "second"},
+            ],
+            "source": "conversation",
+        },
+    ],
+)
+async def test_request_rejects_values_beyond_documented_limits(payload: dict) -> None:
+    app = create_app(Settings(demo_mode=True))
+    response = await request(app, "POST", "/v1/analyze", json=payload)
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
 async def test_conversation_rules_do_not_join_different_senders() -> None:
     app = create_app(Settings(demo_mode=False), detectors=UnavailableClients())
     split = await request(
@@ -159,6 +292,58 @@ async def test_conversation_rules_do_not_join_different_senders() -> None:
     payload = same.json()
     assert payload["verdict"] == "suspected_scam"
     assert {item["message_id"] for item in payload["evidence"]} == {"m1", "m2"}
+
+
+@pytest.mark.asyncio
+async def test_protected_sender_messages_are_excluded_from_policy() -> None:
+    app = create_app(Settings(demo_mode=False), detectors=UnavailableClients())
+    messages = [
+        {"id": "self-urgent", "sender_id": "me", "text": "Act now, this is urgent."},
+        {"id": "self-secret", "sender_id": "me", "text": "Send your OTP to verify."},
+        {"id": "other-neutral", "sender_id": "sender-a", "text": "See you tomorrow."},
+    ]
+
+    included = await request(
+        app,
+        "POST",
+        "/v1/analyze",
+        json={"messages": messages, "source": "conversation"},
+    )
+    assert included.json()["verdict"] == "suspected_scam"
+    assert {item["message_id"] for item in included.json()["evidence"]} == {
+        "self-urgent",
+        "self-secret",
+    }
+
+    excluded = await request(
+        app,
+        "POST",
+        "/v1/analyze",
+        json={"messages": messages, "sender_id": "me", "source": "conversation"},
+    )
+    payload = excluded.json()
+    assert payload["verdict"] == "unknown"
+    assert payload["module_results"]["conversation"]["evidence"] == []
+
+
+def test_suspected_scam_module_requires_grounded_evidence() -> None:
+    with pytest.raises(ValueError, match="grounded evidence"):
+        ModuleResult(
+            status=CoverageStatus.COMPLETE,
+            version="test-1",
+            raw_score_type="test_result",
+            verdict=Verdict.SUSPECTED_SCAM,
+            severity=Severity.HIGH,
+            score=1,
+        )
+
+    with pytest.raises(ValueError, match="quote or observed value"):
+        Evidence(
+            id="ungrounded",
+            indicator_type="test",
+            source_module="text",
+            explanation="An explanation alone cannot ground a positive verdict.",
+        )
 
 
 @pytest.mark.asyncio
