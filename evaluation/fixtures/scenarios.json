@@ -1,0 +1,85 @@
+{
+  "metadata": {
+    "version": "0.1.0",
+    "purpose": "Bootstrap contract scenarios, not a detection-performance dataset",
+    "synthetic": true,
+    "review_status": "single_author_bootstrap; Priya must freeze and dual-review the sprint set"
+  },
+  "scenarios": [
+    {
+      "id": "SYN-TEXT-001",
+      "expected_verdict": "suspected_scam",
+      "input": {
+        "text": "Your account expires today. Send your OTP now to verify the account.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Request to disclose an OTP under time pressure",
+      "reviewer": null
+    },
+    {
+      "id": "SYN-TEXT-002",
+      "expected_verdict": "legitimate",
+      "input": {
+        "text": "Your OTP is 314159. Do not share it with anyone.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Authored OTP notification that warns against sharing",
+      "reviewer": null
+    },
+    {
+      "id": "SYN-TEXT-003",
+      "expected_verdict": "spam",
+      "input": {
+        "text": "Weekend sale: 30 percent discount. Reply STOP to unsubscribe.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Authored promotion",
+      "reviewer": null
+    },
+    {
+      "id": "SYN-URL-001",
+      "expected_verdict": "suspected_scam",
+      "input": {
+        "urls": ["http://192.0.2.10/verify"],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Fixture URL with an IP-address host",
+      "reviewer": null
+    },
+    {
+      "id": "SYN-CONV-001",
+      "expected_verdict": "suspected_scam",
+      "input": {
+        "messages": [
+          {"id": "c1", "sender_id": "sender-a", "text": "Act now, your account will be suspended."},
+          {"id": "c2", "sender_id": "sender-a", "text": "Send your OTP to verify the account."}
+        ],
+        "sender_id": "me",
+        "source": "conversation"
+      },
+      "support": "Same supplied sender escalates from urgency to a secret request",
+      "reviewer": null
+    },
+    {
+      "id": "SYN-CONV-002",
+      "expected_verdict": "unknown",
+      "input": {
+        "messages": [
+          {"id": "c3", "sender_id": "sender-a", "text": "Act now, this is urgent."},
+          {"id": "c4", "sender_id": "sender-b", "text": "Send your OTP to verify."}
+        ],
+        "sender_id": "me",
+        "source": "conversation"
+      },
+      "support": "Signals from different senders must not be joined",
+      "reviewer": null
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "analysis_id": "fixture-example-1",
+  "status": "complete",
+  "verdict": "suspected_scam",
+  "severity": "high",
+  "risk_score": null,
+  "probability_calibrated": false,
+  "evidence": [
+    {
+      "id": "fixture-text-example",
+      "indicator_type": "secret_request",
+      "source_module": "text",
+      "quote": "Send your OTP",
+      "observed_value": null,
+      "message_id": null,
+      "explanation": "Fixture rule matched a request to disclose a secret."
+    }
+  ],
+  "coverage": {
+    "text": "complete",
+    "url": "not_applicable",
+    "conversation": "not_applicable",
+    "reputation": "not_run"
+  },
+  "module_results": {
+    "text": {
+      "status": "complete",
+      "version": "fixture-text-0.1.0",
+      "raw_score_type": "fixture_rule_hits",
+      "verdict": "suspected_scam",
+      "severity": "high",
+      "score": 1,
+      "evidence": [
+        {
+          "id": "fixture-text-example",
+          "indicator_type": "secret_request",
+          "source_module": "text",
+          "quote": "Send your OTP",
+          "observed_value": null,
+          "message_id": null,
+          "explanation": "Fixture rule matched a request to disclose a secret."
+        }
+      ],
+      "detail": null,
+      "fixture_generated": true
+    }
+  },
+  "recommendation": "Verify independently before responding.",
+  "limitations": ["Detector outputs are fixture-generated demo data, not live inference."],
+  "versions": { "gateway": "0.1.0", "text": "fixture-text-0.1.0" },
+  "processing_ms": 2,
+  "fixture_generated": true
+}

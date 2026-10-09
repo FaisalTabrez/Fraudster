@@ -1,0 +1,76 @@
+name: fraudster
+
+services:
+  text:
+    build:
+      context: ./services/text
+    environment:
+      TEXT_MODEL: ${TEXT_MODEL:-configure-me}
+      TEXT_API_KEY: ${TEXT_API_KEY:-}
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live')"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+
+  url:
+    build:
+      context: ./services/url
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live')"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+
+  gateway:
+    build:
+      context: ./services/gateway
+    environment:
+      TEXT_SERVICE_URL: ${TEXT_SERVICE_URL:-http://text:8000}
+      URL_SERVICE_URL: ${URL_SERVICE_URL:-http://url:8000}
+      OCR_SERVICE_URL: ${OCR_SERVICE_URL:-http://ocr:8000}
+      ANALYSIS_TIMEOUT_SECONDS: ${ANALYSIS_TIMEOUT_SECONDS:-10}
+      DEMO_MODE: ${DEMO_MODE:-false}
+      TEXT_MODEL: ${TEXT_MODEL:-configure-me}
+      TEXT_API_KEY: ${TEXT_API_KEY:-}
+    expose:
+      - "8000"
+    depends_on:
+      text:
+        condition: service_healthy
+      url:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live')"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+
+  web:
+    build:
+      context: ./apps/web
+    ports:
+      - "${WEB_PORT:-4173}:8080"
+    depends_on:
+      gateway:
+        condition: service_healthy
+
+  ocr:
+    profiles: ["ocr"]
+    build:
+      context: ./services/ocr
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s

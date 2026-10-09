@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FaisalTabrez/Fraudster/contracts/extraction-response.schema.json",
+  "title": "Fraudster screenshot extraction response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "text", "boxes", "image", "detail"],
+  "properties": {
+    "status": { "enum": ["complete", "unavailable"] },
+    "text": { "type": ["string", "null"] },
+    "boxes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text", "x", "y", "width", "height"],
+        "properties": {
+          "text": { "type": "string" },
+          "x": { "type": "integer", "minimum": 0 },
+          "y": { "type": "integer", "minimum": 0 },
+          "width": { "type": "integer", "minimum": 0 },
+          "height": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "image": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["width", "height"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "detail": { "type": ["string", "null"] }
+  }
+}

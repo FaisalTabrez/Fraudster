@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FaisalTabrez/Fraudster/contracts/analysis-request.schema.json",
+  "title": "Fraudster analysis request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["source"],
+  "properties": {
+    "text": { "type": ["string", "null"], "maxLength": 10000 },
+    "urls": {
+      "type": "array",
+      "maxItems": 5,
+      "uniqueItems": false,
+      "items": { "type": "string", "minLength": 1, "maxLength": 2048 }
+    },
+    "messages": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/message" }
+    },
+    "sender_id": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 },
+    "conversation_id": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 },
+    "source": { "enum": ["manual", "screenshot", "qr", "conversation"] }
+  },
+  "anyOf": [
+    { "required": ["text"], "properties": { "text": { "type": "string", "minLength": 1 } } },
+    { "required": ["urls"], "properties": { "urls": { "minItems": 1 } } },
+    { "required": ["messages"], "properties": { "messages": { "minItems": 1 } } }
+  ],
+  "$defs": {
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sender_id", "text"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "sender_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "timestamp": { "type": ["string", "null"], "format": "date-time" }
+      }
+    }
+  }
+}

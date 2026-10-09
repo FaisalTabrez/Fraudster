@@ -1,0 +1,33 @@
+{
+  "analysis_id": "unavailable-example-1",
+  "status": "unavailable",
+  "verdict": "unknown",
+  "severity": "unknown",
+  "risk_score": null,
+  "probability_calibrated": false,
+  "evidence": [],
+  "coverage": {
+    "text": "unavailable",
+    "url": "not_applicable",
+    "conversation": "not_applicable",
+    "reputation": "not_run"
+  },
+  "module_results": {
+    "text": {
+      "status": "unavailable",
+      "version": "not_available",
+      "raw_score_type": "none",
+      "verdict": "unknown",
+      "severity": "unknown",
+      "score": null,
+      "evidence": [],
+      "detail": "text service returned HTTP 503",
+      "fixture_generated": false
+    }
+  },
+  "recommendation": "Some checks were unavailable. Verify independently before acting.",
+  "limitations": ["Unavailable checks: text."],
+  "versions": { "gateway": "0.1.0", "text": "not_available" },
+  "processing_ms": 8,
+  "fixture_generated": false
+}

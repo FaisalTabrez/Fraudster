@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FaisalTabrez/Fraudster/contracts/analysis-response.schema.json",
+  "title": "Fraudster analysis response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "analysis_id", "status", "verdict", "severity", "risk_score",
+    "probability_calibrated", "evidence", "coverage", "module_results",
+    "recommendation", "limitations", "versions", "processing_ms", "fixture_generated"
+  ],
+  "properties": {
+    "analysis_id": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["complete", "partial", "unavailable"] },
+    "verdict": { "$ref": "#/$defs/verdict" },
+    "severity": { "$ref": "#/$defs/severity" },
+    "risk_score": { "type": "null" },
+    "probability_calibrated": { "const": false },
+    "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "url", "conversation", "reputation"],
+      "properties": {
+        "text": { "$ref": "#/$defs/coverageStatus" },
+        "url": { "$ref": "#/$defs/coverageStatus" },
+        "conversation": { "$ref": "#/$defs/coverageStatus" },
+        "reputation": { "$ref": "#/$defs/coverageStatus" }
+      }
+    },
+    "module_results": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/moduleResult" }
+    },
+    "recommendation": { "type": "string", "minLength": 1 },
+    "limitations": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "versions": { "type": "object", "additionalProperties": { "type": "string" } },
+    "processing_ms": { "type": "integer", "minimum": 0 },
+    "fixture_generated": { "type": "boolean" }
+  },
+  "$defs": {
+    "verdict": { "enum": ["legitimate", "spam", "suspected_scam", "unknown"] },
+    "severity": { "enum": ["low", "medium", "high", "unknown"] },
+    "coverageStatus": { "enum": ["complete", "not_applicable", "not_run", "unavailable"] },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "indicator_type", "source_module", "explanation"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "indicator_type": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "source_module": { "enum": ["text", "url", "conversation", "reputation"] },
+        "quote": { "type": ["string", "null"], "maxLength": 2000 },
+        "observed_value": { "type": ["string", "number", "integer", "boolean", "null"] },
+        "message_id": { "type": ["string", "null"], "maxLength": 128 },
+        "explanation": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
+    "moduleResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "version", "raw_score_type", "verdict", "severity", "score", "evidence", "fixture_generated"],
+      "properties": {
+        "status": { "$ref": "#/$defs/coverageStatus" },
+        "version": { "type": "string", "minLength": 1 },
+        "raw_score_type": { "type": "string", "minLength": 1 },
+        "verdict": { "$ref": "#/$defs/verdict" },
+        "severity": { "$ref": "#/$defs/severity" },
+        "score": { "type": ["number", "integer", "null"] },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } },
+        "detail": { "type": ["string", "null"], "maxLength": 300 },
+        "fixture_generated": { "type": "boolean" }
+      }
+    }
+  }
+}

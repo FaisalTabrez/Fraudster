@@ -1,0 +1,1 @@
+"""Text detector service."""

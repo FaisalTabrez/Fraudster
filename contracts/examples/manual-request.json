@@ -1,0 +1,8 @@
+{
+  "text": "Your account will be suspended today. Send your OTP to verify the account.",
+  "urls": ["https://example.test/login"],
+  "messages": [],
+  "sender_id": "me",
+  "conversation_id": "demo-thread-1",
+  "source": "manual"
+}

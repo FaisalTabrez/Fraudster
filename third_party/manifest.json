@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "inspected_on": "2026-10-09",
+  "entries": [
+    {
+      "name": "SmishX",
+      "repository_url": "https://github.com/yizhu-joy/SmishX",
+      "immutable_commit_or_release": "116a8c827741e0572563f678d25ed04306b1e3ff",
+      "inspected_license": "MIT",
+      "license_verification": "verified from LICENSE at the recorded commit",
+      "copied_file_list": [],
+      "model_provenance": "No model asset is bundled. The inspected source calls an externally configured OpenAI model.",
+      "local_changes": "None; the adapter remains not implemented.",
+      "verification_notes": [
+        "The inspected source combines phishing and spam into a boolean category.",
+        "The final detection exception returns category true.",
+        "URL expansion is called before optional URL checks and therefore still dereferences input in the inspected fast path."
+      ]
+    },
+    {
+      "name": "phishing-url-detector",
+      "repository_url": "https://github.com/Sarthakagrwal/phishing-url-detector",
+      "immutable_commit_or_release": "8648994a2e2ff25eac8fe23b46705ecbcd27f296",
+      "inspected_license": "MIT",
+      "license_verification": "verified from LICENSE and pyproject.toml at the recorded commit",
+      "copied_file_list": [],
+      "model_provenance": "The inspected JSON metadata describes StandardScaler plus logistic regression trained from UCI PhiUSIIL dataset #967, CC BY 4.0, with documented synthetic legitimate deep-link augmentation. No model asset is copied into this scaffold.",
+      "local_changes": "None; the Python 3.13+ adapter, feature code, rules, and aligned model asset remain not implemented.",
+      "verification_notes": [
+        "pyproject.toml requires Python >=3.13.",
+        "The runtime feature order is validated against the JSON model metadata.",
+        "The upstream 0-100 heuristic score and blended band are policy values, not a calibrated fraud probability.",
+        "The upstream Safe label must not be presented as a guarantee."
+      ]
+    },
+    {
+      "name": "PaddleOCR",
+      "repository_url": "https://github.com/PaddlePaddle/PaddleOCR",
+      "immutable_commit_or_release": "dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf",
+      "inspected_license": "Apache-2.0",
+      "license_verification": "verified from LICENSE at the recorded commit",
+      "copied_file_list": [],
+      "model_provenance": null,
+      "local_changes": "None; CPU model selection, download, compatibility, and language coverage are not yet verified.",
+      "verification_notes": ["The inspected pyproject.toml declares Python >=3.8; no OCR dependency is installed in P0."]
+    },
+    {
+      "name": "zxing-js browser",
+      "repository_url": "https://github.com/zxing-js/browser",
+      "immutable_commit_or_release": "9ad027d88d4533bd6d29f9d8d7e517e23cd361ff",
+      "inspected_license": "MIT",
+      "license_verification": "verified from LICENSE and package.json at the recorded commit",
+      "copied_file_list": [],
+      "model_provenance": null,
+      "local_changes": "None; QR decoding is deferred to P1 and the package is not installed in this scaffold.",
+      "verification_notes": ["The inspected package version is 0.2.1 with @zxing/library as a peer dependency."]
+    }
+  ]
+}
