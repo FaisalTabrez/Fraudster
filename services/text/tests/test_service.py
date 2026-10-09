@@ -1,3 +1,6 @@
+import asyncio
+import json
+
 import httpx
 import pytest
 
@@ -60,3 +63,48 @@ def test_structured_result_rejects_quote_not_in_submitted_text() -> None:
                 ],
             },
         )
+
+
+@pytest.mark.asyncio
+async def test_provider_timeout_is_total_deadline_for_slow_stream(monkeypatch) -> None:
+    response_body = json.dumps(
+        {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {"verdict": "unknown", "severity": "unknown", "evidence": []}
+                        )
+                    }
+                }
+            ]
+        }
+    ).encode()
+
+    class SlowStream(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            for byte in response_body:
+                await asyncio.sleep(0.03)
+                yield bytes([byte])
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, stream=SlowStream())
+
+    real_async_client = httpx.AsyncClient
+
+    def client_factory(*args, **kwargs):
+        kwargs["transport"] = httpx.MockTransport(handler)
+        return real_async_client(*args, **kwargs)
+
+    monkeypatch.setattr("services.text.app.detector.httpx.AsyncClient", client_factory)
+    detector = TextDetector(
+        model_name="provider-model",
+        api_key_configured=True,
+        api_key="test",
+        request_timeout_seconds=0.05,
+    )
+
+    with pytest.raises(DetectorUnavailable) as exc_info:
+        await detector.predict("Ambiguous text")
+
+    assert exc_info.value.code == "provider_timeout"
