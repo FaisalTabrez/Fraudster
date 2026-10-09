@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 from dataclasses import dataclass
@@ -163,20 +164,23 @@ class TextDetector:
             },
         }
         try:
-            async with httpx.AsyncClient(
-                timeout=self.request_timeout_seconds,
-                follow_redirects=False,
-            ) as client:
-                response = await client.post(
-                    endpoint,
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json",
-                    },
-                    json=request,
-                )
-                response.raise_for_status()
-        except httpx.TimeoutException as exc:
+            async with asyncio.timeout(self.request_timeout_seconds):
+                async with httpx.AsyncClient(
+                    timeout=self.request_timeout_seconds,
+                    follow_redirects=False,
+                ) as client:
+                    async with client.stream(
+                        "POST",
+                        endpoint,
+                        headers={
+                            "Authorization": f"Bearer {self.api_key}",
+                            "Content-Type": "application/json",
+                        },
+                        json=request,
+                    ) as response:
+                        response.raise_for_status()
+                        response_body = await response.aread()
+        except (TimeoutError, httpx.TimeoutException) as exc:
             raise DetectorUnavailable(
                 "provider_timeout", "The text provider deadline was exceeded."
             ) from exc
@@ -185,7 +189,7 @@ class TextDetector:
                 "provider_unavailable", "The text provider request failed."
             ) from exc
 
-        body = response.json()
+        body = json.loads(response_body)
         content = body["choices"][0]["message"]["content"]
         if not isinstance(content, str):
             raise TypeError("provider message content must be a JSON string")
