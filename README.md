@@ -7,7 +7,7 @@ The repository was empty at kickoff, so the requested layout was created directl
 ## Current runtime truth
 
 - Fixture mode is deterministic and visibly marked **Demo data** in every response and result view.
-- Default/live mode starts without paid credentials, but the text and URL services return `unavailable` until their reviewed adapters are implemented.
+- Default/live mode starts without paid credentials. The text service remains `unavailable`; the URL service uses a pinned string-only model and returns input-dependent results.
 - The local conversation rules are active in both modes. They only combine risk signals from the same supplied sender and cite exact message IDs.
 - Aggregate `risk_score` is always null. The UI does not turn null into zero percent.
 - Submitted URLs are parsed as strings only. This scaffold does not fetch or open them.
@@ -45,7 +45,7 @@ Stop the stack with `docker compose down`. Compose exposes only the web service 
 
 ## Native development
 
-The frontend targets Node 24 LTS and has a committed lock file. The gateway and text service target Python 3.11. The future URL adapter is isolated on Python 3.13 because its inspected upstream metadata requires Python 3.13 or newer.
+The frontend targets Node 24 LTS and has a committed lock file. The gateway and text service target Python 3.11. The URL adapter is isolated on Python 3.13 because its pinned upstream metadata requires Python 3.13 or newer.
 
 Create the Python environment from the repository root:
 
@@ -76,7 +76,7 @@ $env:PYTHONPATH = (Get-Location).Path
 .\.venv\Scripts\python.exe -m pytest -q services\gateway\tests services\text\tests services\ocr\tests tests\integration
 ```
 
-Run the URL shell checks in Python 3.13:
+Run the URL adapter checks in Python 3.13:
 
 ```powershell
 py -3.13 -m venv .venv-url
@@ -124,7 +124,7 @@ Work starts from this shared bootstrap baseline. The agreed branches are `feat/g
 The adapters still to be implemented are:
 
 1. SmishX-derived structured text semantics with separate legitimate, spam, scam, and unknown handling.
-2. The pinned URL extractor, ordered features, rules, and JSON model in the Python 3.13 URL service.
+2. URL feature-level evidence and additional edge cases in AKH-02.
 3. A verified small CPU PaddleOCR model and 5 MB/20-million-pixel image validation.
 4. Local QR decoding with `@zxing/browser`, routed back through the existing analysis contract without opening decoded content.
 

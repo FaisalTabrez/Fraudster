@@ -8,13 +8,15 @@
       "immutable_commit_or_release": "116a8c827741e0572563f678d25ed04306b1e3ff",
       "inspected_license": "MIT",
       "license_verification": "verified from LICENSE at the recorded commit",
-      "copied_file_list": [],
+      "copied_file_list": ["third_party/licenses/SmishX-LICENSE.txt"],
       "model_provenance": "No model asset is bundled. The inspected source calls an externally configured OpenAI model.",
-      "local_changes": "None; the adapter remains not implemented.",
+      "local_changes": "Implemented a new text-only structured-output adapter informed by the reviewed category guidance. No upstream runtime code was copied. The adapter separates legitimate, spam, suspected_scam, and unknown; validates literal evidence quotes; maps missing configuration, provider failures, invalid JSON, and deadlines to explicit unavailable states; records model and prompt versions; never dereferences URLs; and writes no output files.",
       "verification_notes": [
         "The inspected source combines phishing and spam into a boolean category.",
         "The final detection exception returns category true.",
-        "URL expansion is called before optional URL checks and therefore still dereferences input in the inspected fast path."
+        "URL expansion is called before optional URL checks and therefore still dereferences input in the inspected fast path.",
+        "The local adapter does not use the upstream URL, crawling, screenshot, search, WHOIS, or output-file paths.",
+        "Provider categories and evidence are schema validated; evidence quotes must be exact substrings of the submitted text."
       ]
     },
     {
@@ -23,9 +25,20 @@
       "immutable_commit_or_release": "8648994a2e2ff25eac8fe23b46705ecbcd27f296",
       "inspected_license": "MIT",
       "license_verification": "verified from LICENSE and pyproject.toml at the recorded commit",
-      "copied_file_list": [],
-      "model_provenance": "The inspected JSON metadata describes StandardScaler plus logistic regression trained from UCI PhiUSIIL dataset #967, CC BY 4.0, with documented synthetic legitimate deep-link augmentation. No model asset is copied into this scaffold.",
-      "local_changes": "None; the Python 3.13+ adapter, feature code, rules, and aligned model asset remain not implemented.",
+      "copied_file_list": [
+        "services/url/app/upstream/__init__.py",
+        "services/url/app/upstream/urlparse.py",
+        "services/url/app/upstream/suffix_list.py",
+        "services/url/app/upstream/features.py",
+        "services/url/app/upstream/heuristics.py",
+        "services/url/app/upstream/model.py",
+        "services/url/app/upstream/classify.py",
+        "services/url/app/upstream/model_meta.json",
+        "third_party/licenses/phishing-url-detector-LICENSE.txt"
+      ],
+      "model_provenance": "Reviewed plain JSON parameters for a StandardScaler plus logistic regression trained from UCI PhiUSIIL dataset #967 (CC BY 4.0), with documented synthetic legitimate deep-link augmentation. The upstream joblib model and source dataset are not copied. The upstream reported metrics are not Fraudster performance claims.",
+      "model_attribution_notice": "third_party/licenses/PhiUSIIL-ATTRIBUTION.md",
+      "local_changes": "The JSON model path is adapted for the isolated URL service. The adapter loads it once, validates exact feature order, and maps string-only classification to the private gateway ModuleResult contract without WHOIS, DNS, HTTP fetches, or the upstream CLI/browser.",
       "verification_notes": [
         "pyproject.toml requires Python >=3.13.",
         "The runtime feature order is validated against the JSON model metadata.",
