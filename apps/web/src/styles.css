@@ -26,9 +26,13 @@ h1 { margin: 8px 0 14px; max-width: 780px; font-family: Georgia, "Times New Roma
 .section-heading p, .empty-result p, .ingestion-status p { color: #65716b; line-height: 1.55; }
 label, legend { color: #25332d; font-weight: 750; }
 label { display: grid; gap: 8px; margin: 22px 0; }
+.field { display: grid; gap: 8px; margin: 22px 0; }
+.field label { display: block; margin: 0; }
 input, textarea { width: 100%; border: 1px solid #c9cec9; border-radius: 12px; background: #fff; color: #17211d; padding: 13px 14px; line-height: 1.45; outline: none; transition: border-color .15s, box-shadow .15s; }
 textarea { resize: vertical; }
 input:focus, textarea:focus { border-color: #256750; box-shadow: 0 0 0 3px rgba(37, 103, 80, 0.14); }
+:focus-visible { outline: 2px solid #183f34; outline-offset: 2px; }
+.result-panel h2:focus:not(:focus-visible) { outline: none; }
 .field-hint { color: #748078; font-size: 0.82rem; font-weight: 450; }
 .conversation-editor { margin: 26px 0; padding: 20px; border: 1px solid #d6d9d2; border-radius: 16px; }
 .conversation-editor legend { padding: 0 8px; }
@@ -46,13 +50,23 @@ input:focus, textarea:focus { border-color: #256750; box-shadow: 0 0 0 3px rgba(
 .result-panel h3 { margin: 30px 0 12px; font-size: 0.85rem; letter-spacing: .1em; text-transform: uppercase; }
 .demo-badge { flex: none; border-radius: 999px; background: #fff0b8; color: #5c4712; padding: 7px 11px; font-size: .74rem; font-weight: 850; text-transform: uppercase; letter-spacing: .08em; }
 .recommendation { padding-bottom: 18px; border-bottom: 1px solid #e3e5df; color: #2f433b; line-height: 1.55; font-size: 1.02rem; }
+.verdict-note { margin: -6px 0 12px; color: #2f433b; font-weight: 700; }
+.result-meta { margin: 0 0 14px; color: #68716c; font-size: .78rem; }
+.result-meta code, .evidence-card code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; overflow-wrap: anywhere; }
+.status-banner { margin: 0 0 18px; padding: 14px 16px; border: 2px dashed #3d5a80; border-radius: 12px; background: #eef3f9; color: #1f3350; line-height: 1.5; }
+.status-banner strong { display: block; margin-bottom: 4px; }
+.status-banner p { margin: 0 0 4px; }
+.status-banner p:last-child { margin-bottom: 0; }
+.coverage-details { margin: 0 0 4px; padding-left: 20px; color: #5f6863; font-size: .88rem; line-height: 1.5; }
 .summary-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .summary-list div { padding: 12px; border-radius: 12px; background: #f0f2ed; }
 .summary-list dt { color: #6b766f; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
-.summary-list dd { margin: 4px 0 0; font-weight: 800; text-transform: capitalize; }
+.summary-list dd { margin: 4px 0 0; font-weight: 800; }
 .coverage-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; list-style: none; padding: 0; }
-.coverage-grid li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 13px; border: 1px solid #dce0da; border-radius: 11px; text-transform: capitalize; }
+.coverage-grid li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 13px; border: 1px solid #dce0da; border-radius: 11px; }
 .coverage-grid strong { font-size: .78rem; }
+.coverage-grid .coverage-unavailable { border-style: dashed; }
+.coverage-grid .coverage-not_run { border-style: dotted; }
 .coverage-unavailable strong { color: #a33a2c; }
 .coverage-complete strong { color: #27644f; }
 .coverage-not_run strong, .coverage-not_applicable strong { color: #68716c; }
@@ -68,7 +82,7 @@ input:focus, textarea:focus { border-color: #256750; box-shadow: 0 0 0 3px rgba(
 .verdict-suspected_scam { border-top: 5px solid #a73b2c; }
 .verdict-spam { border-top: 5px solid #b77a1e; }
 .verdict-legitimate { border-top: 5px solid #2d715a; }
-.verdict-unknown { border-top: 5px solid #707a75; }
+.verdict-unknown { border-top: 5px dashed #707a75; }
 .ingestion-status { background: rgba(237, 242, 238, .9); box-shadow: none; }
 .ingestion-status h2 { font-size: 1.5rem; }
 
