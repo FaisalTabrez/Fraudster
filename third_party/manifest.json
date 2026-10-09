@@ -67,40 +67,6 @@
       "model_provenance": null,
       "local_changes": "None; QR decoding is deferred to P1 and the package is not installed in this scaffold.",
       "verification_notes": ["The inspected package version is 0.2.1 with @zxing/library as a peer dependency."]
-    },
-    {
-      "name": "Public Sans",
-      "repository_url": "https://github.com/uswds/public-sans",
-      "immutable_commit_or_release": null,
-      "inspected_license": "SIL OFL 1.1 (upstream Libre Franklin) with CC0 1.0 for GSA modifications",
-      "license_verification": "license text shipped with the brand kit at brand/fonts/PublicSans-LICENSE.md; not re-checked against an upstream commit",
-      "copied_file_list": [
-        "brand/fonts/PublicSans-latin.woff2",
-        "brand/fonts/PublicSans-LICENSE.md"
-      ],
-      "model_provenance": null,
-      "local_changes": "Latin-subset variable woff2 (400-700) as supplied in the brand kit; subsetting tool and upstream release were not recorded.",
-      "verification_notes": [
-        "The upstream release the subset was cut from is unknown and must be recorded before relying on this entry."
-      ]
-    },
-    {
-      "name": "IBM Plex Mono",
-      "repository_url": "https://github.com/IBM/plex",
-      "immutable_commit_or_release": null,
-      "inspected_license": "SIL OFL 1.1",
-      "license_verification": "license text shipped with the brand kit at brand/fonts/IBMPlex-LICENSE.txt; not re-checked against an upstream commit",
-      "copied_file_list": [
-        "brand/fonts/IBMPlexMono-Regular-latin.woff2",
-        "brand/fonts/IBMPlexMono-Medium-latin.woff2",
-        "brand/fonts/IBMPlex-LICENSE.txt"
-      ],
-      "model_provenance": null,
-      "local_changes": "Latin-subset woff2 files (400 and 500) as supplied in the brand kit; subsetting tool and upstream release were not recorded.",
-      "verification_notes": [
-        "The upstream release the subset was cut from is unknown and must be recorded before relying on this entry.",
-        "The upstream license reserves the font name \"Plex\"; confirm the subset files comply before renaming or modifying them further."
-      ]
     }
   ]
 }

@@ -9,7 +9,7 @@ Fraudster is a personal safety assistant that checks a message, link or conversa
 - **Never claim safety.** There is no "safe" verdict. Hedge every result: "Not a guarantee", "Still verify anything you didn't expect", "This is not a clean result."
 - **Be honest about gaps.** Name what didn't run and what the result is based on: "1 of 2 checks couldn't run: link structure. The result below is based only on what did run."
 - **Second person, plain, short.** "We" is Fraudster, "you" is the person. Sentence case everywhere; headings are questions or plain statements ("What did you receive?", "Why we're warning you", "What we checked", "Limits of this result").
-- **Explain the privacy model in place.** "Only what you paste here is checked. Fraudster can't see your other chats or apps, and nothing is stored." "Links are read as text and never opened."
+- **Explain the privacy model in place, and say it precisely.** State what the app keeps locally and what may leave it. Example: "Only what you paste here is checked. Fraudster can't see your other chats or apps, and it keeps no history of what you submit. A text check may send your message to the analysis provider this app is configured with, which handles and retains it under its own terms." "Links are read as text and never opened." Never promise that "nothing is stored" or that nothing leaves the device: the no-database boundary covers this app only, not an external provider's processing or retention.
 - No emoji, no exclamation marks, no urgency language (that is the scammer's voice).
 
 ## Colour

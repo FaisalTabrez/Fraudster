@@ -1,7 +1,6 @@
 /* Fraudster — generated from tokens.json */
-@font-face{font-family:"Public Sans";src:url("fonts/PublicSans-latin.woff2") format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
-@font-face{font-family:"IBM Plex Mono";src:url("fonts/IBMPlexMono-Regular-latin.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
-@font-face{font-family:"IBM Plex Mono";src:url("fonts/IBMPlexMono-Medium-latin.woff2") format("woff2");font-weight:500;font-style:normal;font-display:swap}
+/* Fonts are not bundled. Load Public Sans and IBM Plex Mono (both SIL OFL) from their upstream
+   releases; until then the --font-sans and --font-mono stacks fall back to system fonts. */
 :root{
   --ground: #f4f2ec;
   --surface: #ffffff;
