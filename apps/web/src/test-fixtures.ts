@@ -1,8 +1,18 @@
-import type { AnalysisResponse } from "./types/analysis";
+import type { AnalysisResponse, Evidence } from "./types/analysis";
 
 // Test-only copies of the response shapes in contracts/examples/. They are typed here so the
 // web tests do not import from, or depend on edits to, the frozen contracts directory.
 // All values are synthetic demo data, not model output.
+
+const scamEvidence: Evidence = {
+  id: "fixture-text-example",
+  indicator_type: "secret_request",
+  source_module: "text",
+  quote: "Send your OTP",
+  observed_value: null,
+  message_id: null,
+  explanation: "Fixture rule matched a request to disclose a secret.",
+};
 
 export const fixtureScamResponse: AnalysisResponse = {
   analysis_id: "fixture-example-1",
@@ -11,17 +21,7 @@ export const fixtureScamResponse: AnalysisResponse = {
   severity: "high",
   risk_score: null,
   probability_calibrated: false,
-  evidence: [
-    {
-      id: "fixture-text-example",
-      indicator_type: "secret_request",
-      source_module: "text",
-      quote: "Send your OTP",
-      observed_value: null,
-      message_id: null,
-      explanation: "Fixture rule matched a request to disclose a secret.",
-    },
-  ],
+  evidence: [scamEvidence],
   coverage: { text: "complete", url: "not_applicable", conversation: "not_applicable", reputation: "not_run" },
   module_results: {
     text: {
@@ -31,7 +31,8 @@ export const fixtureScamResponse: AnalysisResponse = {
       verdict: "suspected_scam",
       severity: "high",
       score: 1,
-      evidence: [],
+      // The contract requires evidence on a module-level scam verdict as well.
+      evidence: [scamEvidence],
       detail: null,
       fixture_generated: true,
     },
