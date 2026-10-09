@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -49,3 +50,33 @@ def test_extraction_example_matches_frozen_schema() -> None:
     schema = load(ROOT / "contracts" / "extraction-response.schema.json")
     example = load(ROOT / "contracts" / "examples" / "extraction-unavailable.json")
     Draft202012Validator(schema).validate(example)
+
+
+def test_response_schema_requires_grounded_scam_evidence() -> None:
+    schema = load(ROOT / "contracts" / "analysis-response.schema.json")
+    validator = Draft202012Validator(schema, format_checker=FormatChecker())
+    example = load(ROOT / "contracts" / "examples" / "fixture-response.json")
+
+    for mutation in ("missing", "blank", "null"):
+        invalid = deepcopy(example)
+        if mutation == "missing":
+            invalid["evidence"] = []
+        elif mutation == "blank":
+            invalid["evidence"][0]["quote"] = " "
+        else:
+            invalid["evidence"][0]["quote"] = None
+        with pytest.raises(ValidationError):
+            validator.validate(invalid)
+
+
+@pytest.mark.parametrize("field,value", [
+    ("text", " " * 10000 + "x"),
+    ("urls", [" " * 2048 + "x"]),
+    ("conversation_id", " " * 128 + "x"),
+])
+def test_request_schema_rejects_padded_overlong_values(field: str, value: object) -> None:
+    schema = load(ROOT / "contracts" / "analysis-request.schema.json")
+    example = load(ROOT / "contracts" / "examples" / "manual-request.json")
+    example[field] = value
+    with pytest.raises(ValidationError):
+        Draft202012Validator(schema).validate(example)

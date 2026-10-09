@@ -4,7 +4,10 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, model_validator
+
+
+FiniteStrictFloat = Annotated[float, Field(strict=True, allow_inf_nan=False)]
 
 
 class Source(StrEnum):
@@ -49,6 +52,16 @@ class Message(BaseModel):
     text: str = Field(min_length=1, max_length=2000)
     timestamp: datetime | None = None
 
+    @model_validator(mode="before")
+    @classmethod
+    def validate_wire_lengths(cls, data: object) -> object:
+        if isinstance(data, dict):
+            for name, limit in (("id", 128), ("sender_id", 128), ("text", 2000)):
+                value = data.get(name)
+                if isinstance(value, str) and len(value) > limit:
+                    raise ValueError(f"{name} exceeds {limit} characters")
+        return data
+
 
 UrlValue = Annotated[str, Field(min_length=1, max_length=2048)]
 
@@ -63,6 +76,19 @@ class AnalysisRequest(BaseModel):
     conversation_id: str | None = Field(default=None, min_length=1, max_length=128)
     source: Source
 
+    @model_validator(mode="before")
+    @classmethod
+    def validate_wire_lengths(cls, data: object) -> object:
+        if isinstance(data, dict):
+            for name, limit in (("text", 10000), ("sender_id", 128), ("conversation_id", 128)):
+                value = data.get(name)
+                if isinstance(value, str) and len(value) > limit:
+                    raise ValueError(f"{name} exceeds {limit} characters")
+            urls = data.get("urls")
+            if isinstance(urls, list) and any(isinstance(url, str) and len(url) > 2048 for url in urls):
+                raise ValueError("URL exceeds 2048 characters")
+        return data
+
     @model_validator(mode="after")
     def validate_meaningful_input(self) -> AnalysisRequest:
         if not ((self.text and self.text.strip()) or self.urls or self.messages):
@@ -73,15 +99,23 @@ class AnalysisRequest(BaseModel):
 
 
 class Evidence(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     id: str = Field(min_length=1, max_length=128)
     indicator_type: str = Field(min_length=1, max_length=64)
     source_module: Literal["text", "url", "conversation", "reputation"]
-    quote: str | None = Field(default=None, max_length=2000)
-    observed_value: str | int | float | bool | None = None
+    quote: str | None = Field(default=None, min_length=1, max_length=2000)
+    observed_value: str | StrictInt | FiniteStrictFloat | bool | None = None
     message_id: str | None = Field(default=None, max_length=128)
     explanation: str = Field(min_length=1, max_length=500)
+
+    @model_validator(mode="after")
+    def require_grounding(self) -> Evidence:
+        if isinstance(self.observed_value, str) and not self.observed_value.strip():
+            raise ValueError("evidence observed value cannot be blank")
+        if self.quote is None and self.observed_value is None:
+            raise ValueError("evidence requires a quote or observed value")
+        return self
 
 
 class ModuleResult(BaseModel):
@@ -92,10 +126,16 @@ class ModuleResult(BaseModel):
     raw_score_type: str
     verdict: Verdict = Verdict.UNKNOWN
     severity: Severity = Severity.UNKNOWN
-    score: float | int | None = None
+    score: StrictInt | FiniteStrictFloat | None = None
     evidence: list[Evidence] = Field(default_factory=list)
     detail: str | None = Field(default=None, max_length=300)
     fixture_generated: bool = False
+
+    @model_validator(mode="after")
+    def require_scam_evidence(self) -> ModuleResult:
+        if self.verdict == Verdict.SUSPECTED_SCAM and not self.evidence:
+            raise ValueError("suspected-scam module results require grounded evidence")
+        return self
 
 
 class Coverage(BaseModel):
@@ -120,3 +160,9 @@ class AnalysisResponse(BaseModel):
     versions: dict[str, str]
     processing_ms: int = Field(ge=0)
     fixture_generated: bool = False
+
+    @model_validator(mode="after")
+    def require_scam_evidence(self) -> AnalysisResponse:
+        if self.verdict == Verdict.SUSPECTED_SCAM and not self.evidence:
+            raise ValueError("suspected-scam responses require grounded evidence")
+        return self

@@ -91,6 +91,19 @@ class FailingClients(PartialClients):
         raise RuntimeError("test detector failure")
 
 
+class BlankEvidenceClients(UngroundedClients):
+    async def text(self, _text: str) -> ModuleResult:
+        # Bypass model validation to exercise the gateway boundary itself.
+        blank = Evidence.model_construct(
+            id="blank", indicator_type="secret_request", source_module="text",
+            quote=" ", observed_value=None, message_id=None, explanation="Blank stub.",
+        )
+        return ModuleResult(
+            status=CoverageStatus.COMPLETE, version="test-1", raw_score_type="none",
+            verdict=Verdict.SUSPECTED_SCAM, severity=Severity.HIGH, evidence=[blank],
+        )
+
+
 @pytest.mark.asyncio
 async def test_fixture_mode_is_explicit_and_never_returns_aggregate_score() -> None:
     app = create_app(Settings(demo_mode=True))
@@ -206,6 +219,24 @@ async def test_ungrounded_detector_warning_is_not_reported_as_scam() -> None:
 
 
 @pytest.mark.asyncio
+async def test_blank_detector_quote_cannot_support_scam_verdict() -> None:
+    with pytest.raises(ValueError):
+        Evidence(
+            id="blank", indicator_type="secret_request", source_module="text",
+            quote=" ", explanation="Blank quote.",
+        )
+    app = create_app(Settings(demo_mode=False), detectors=BlankEvidenceClients())
+    response = await request(app, "POST", "/v1/analyze", json={
+        "text": "Hello there", "source": "manual",
+    })
+    assert response.status_code == 200
+    body = response.json()
+    assert body["verdict"] == "unknown"
+    assert body["evidence"] == []
+    assert body["module_results"]["text"]["verdict"] == "unknown"
+
+
+@pytest.mark.asyncio
 async def test_wrong_request_shape_is_rejected() -> None:
     app = create_app(Settings(demo_mode=True))
     response = await request(
@@ -228,6 +259,73 @@ async def test_duplicate_message_ids_are_rejected() -> None:
         ],
     })
     assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("payload", [
+    {"source": "manual", "text": " " * 10000 + "x"},
+    {"source": "manual", "urls": [" " * 2048 + "x"]},
+    {"source": "manual", "text": "hello", "sender_id": " " * 128 + "x"},
+    {"source": "manual", "text": "hello", "conversation_id": " " * 128 + "x"},
+    {"source": "conversation", "messages": [
+        {"id": " " * 128 + "x", "sender_id": "other", "text": "hello"},
+    ]},
+    {"source": "conversation", "messages": [
+        {"id": "m1", "sender_id": " " * 128 + "x", "text": "hello"},
+    ]},
+    {"source": "conversation", "messages": [
+        {"id": "m1", "sender_id": "other", "text": " " * 2000 + "x"},
+    ]},
+])
+async def test_raw_wire_lengths_reject_padded_overlong_values(payload: dict) -> None:
+    app = create_app(Settings(demo_mode=True))
+    response = await request(app, "POST", "/v1/analyze", json=payload)
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_documented_maximum_lengths_are_accepted() -> None:
+    app = create_app(Settings(demo_mode=False), detectors=UnavailableClients())
+    response = await request(app, "POST", "/v1/analyze", json={
+        "source": "conversation",
+        "text": "t" * 10000,
+        "urls": ["u" * 2047 + str(index) for index in range(5)],
+        "messages": [
+            {"id": f"{index:02d}" + "m" * 126, "sender_id": "s" * 128, "text": "n" * 2000}
+            for index in range(20)
+        ],
+        "sender_id": "p" * 128,
+        "conversation_id": "c" * 128,
+    })
+    assert response.status_code == 200
+    assert response.json()["risk_score"] is None
+
+
+def test_suspected_scam_and_numeric_model_guards() -> None:
+    with pytest.raises(ValueError, match="grounded evidence"):
+        ModuleResult(
+            status=CoverageStatus.COMPLETE, version="test-1", raw_score_type="test",
+            verdict=Verdict.SUSPECTED_SCAM, severity=Severity.HIGH,
+        )
+    with pytest.raises(ValueError, match="quote or observed value"):
+        Evidence(
+            id="missing", indicator_type="test", source_module="text",
+            explanation="No observation.",
+        )
+    for value in (float("nan"), float("inf"), float("-inf")):
+        with pytest.raises(ValueError):
+            ModuleResult(status=CoverageStatus.COMPLETE, version="test-1", raw_score_type="test", score=value)
+        with pytest.raises(ValueError):
+            Evidence(id="bad", indicator_type="test", source_module="url", observed_value=value, explanation="Bad number.")
+    for value in (True, False, "1", "0.5"):
+        with pytest.raises(ValueError):
+            ModuleResult(status=CoverageStatus.COMPLETE, version="test-1", raw_score_type="test", score=value)
+    for value in (0, 0.0, False):
+        evidence = Evidence(
+            id="valid", indicator_type="test", source_module="url",
+            observed_value=value, explanation="Concrete observation.",
+        )
+        assert evidence.observed_value == value
 
 
 @pytest.mark.asyncio

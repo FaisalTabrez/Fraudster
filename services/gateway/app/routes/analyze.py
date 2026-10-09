@@ -54,9 +54,10 @@ def _ground_detector_result(name: str, result: ModuleResult, inputs: list[str]) 
         if item.source_module == name
         and item.message_id is None
         and (
-            (bool(item.quote) and any(item.quote in value for value in inputs))
+            (bool(item.quote and item.quote.strip()) and any(item.quote in value for value in inputs))
             or (
-                name == "url" and isinstance(item.observed_value, str) and bool(item.observed_value)
+                name == "url" and isinstance(item.observed_value, str)
+                and bool(item.observed_value.strip())
                 and any(item.observed_value in value for value in inputs)
             )
         )
