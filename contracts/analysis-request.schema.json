@@ -11,19 +11,19 @@
       "type": "array",
       "maxItems": 5,
       "uniqueItems": false,
-      "items": { "type": "string", "minLength": 1, "maxLength": 2048 }
+      "items": { "type": "string", "minLength": 1, "maxLength": 2048, "pattern": "\\S" }
     },
     "messages": {
       "type": "array",
       "maxItems": 20,
       "items": { "$ref": "#/$defs/message" }
     },
-    "sender_id": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 },
-    "conversation_id": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 },
+    "sender_id": { "type": ["string", "null"], "minLength": 1, "maxLength": 128, "pattern": "\\S" },
+    "conversation_id": { "type": ["string", "null"], "minLength": 1, "maxLength": 128, "pattern": "\\S" },
     "source": { "enum": ["manual", "screenshot", "qr", "conversation"] }
   },
   "anyOf": [
-    { "required": ["text"], "properties": { "text": { "type": "string", "minLength": 1 } } },
+    { "required": ["text"], "properties": { "text": { "type": "string", "pattern": "\\S" } } },
     { "required": ["urls"], "properties": { "urls": { "minItems": 1 } } },
     { "required": ["messages"], "properties": { "messages": { "minItems": 1 } } }
   ],
@@ -33,9 +33,9 @@
       "additionalProperties": false,
       "required": ["id", "sender_id", "text"],
       "properties": {
-        "id": { "type": "string", "minLength": 1, "maxLength": 128 },
-        "sender_id": { "type": "string", "minLength": 1, "maxLength": 128 },
-        "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "\\S" },
+        "sender_id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "\\S" },
+        "text": { "type": "string", "minLength": 1, "maxLength": 2000, "pattern": "\\S" },
         "timestamp": { "type": ["string", "null"], "format": "date-time" }
       }
     }
