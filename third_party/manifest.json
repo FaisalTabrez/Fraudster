@@ -67,6 +67,28 @@
       "model_provenance": null,
       "local_changes": "None; QR decoding is deferred to P1 and the package is not installed in this scaffold.",
       "verification_notes": ["The inspected package version is 0.2.1 with @zxing/library as a peer dependency."]
+    },
+    {
+      "name": "@fontsource-variable/public-sans",
+      "repository_url": "https://github.com/fontsource/font-files",
+      "immutable_commit_or_release": "npm @fontsource-variable/public-sans@5.3.0, sha512-AVfkmAt50BMXWpOO21FAntiJFKGX6xTc2dSL8dxtDteONe9IuRXJWGbs0EbG955vAMCq23ENeuopuW87cGWDSQ==",
+      "inspected_license": "OFL-1.1",
+      "license_verification": "verified from the LICENSE file and package.json inside the installed 5.3.0 package; font software is under the SIL Open Font License 1.1",
+      "copied_file_list": [],
+      "model_provenance": null,
+      "local_changes": "None; installed as a pinned npm dependency (apps/web/package-lock.json) and bundled at build time. No font file is committed to the repository.",
+      "verification_notes": ["Imported in apps/web/src/main.tsx so the browser loads fonts from the web origin, not a third-party CDN."]
+    },
+    {
+      "name": "@fontsource/ibm-plex-mono",
+      "repository_url": "https://github.com/fontsource/font-files",
+      "immutable_commit_or_release": "npm @fontsource/ibm-plex-mono@5.3.0, sha512-eTgnZjZEGk1QtD3ZstF+Vclo2HLAni8YMy34/DxllwZvyz1lR/1RF/xTiAquOBO7MvqBx8D2Ig2WCPMVfdZu7Q==",
+      "inspected_license": "OFL-1.1",
+      "license_verification": "verified from the LICENSE file and package.json inside the installed 5.3.0 package; font software is under the SIL Open Font License 1.1 (reserved font name \"Plex\")",
+      "copied_file_list": [],
+      "model_provenance": null,
+      "local_changes": "None; installed as a pinned npm dependency (apps/web/package-lock.json) and bundled at build time. No font file is committed to the repository.",
+      "verification_notes": ["Only the 400 and 500 weights are imported. The unmodified upstream files are served, so the reserved font name is not affected."]
     }
   ]
 }
