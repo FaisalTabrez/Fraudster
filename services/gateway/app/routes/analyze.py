@@ -16,6 +16,8 @@ from ..models import (
     CoverageStatus,
     Evidence,
     ModuleResult,
+    Severity,
+    Verdict,
 )
 from ..risk.conversation import evaluate_conversation
 from ..risk.fixtures import fixture_text_result, fixture_url_result
@@ -40,6 +42,36 @@ def collect_urls(request: AnalysisRequest) -> list[str]:
     return deduplicated[:5]
 
 
+def _ground_detector_result(name: str, result: ModuleResult, inputs: list[str]) -> ModuleResult:
+    """Keep detector evidence tied to the submitted text or URL strings."""
+    if result.status not in (CoverageStatus.COMPLETE, CoverageStatus.UNAVAILABLE):
+        return unavailable_result(name, f"{name} service returned an invalid coverage status")
+    if result.status == CoverageStatus.UNAVAILABLE:
+        return unavailable_result(name, result.detail or f"{name} service was unavailable")
+
+    evidence = [
+        item for item in result.evidence
+        if item.source_module == name
+        and item.message_id is None
+        and (
+            (bool(item.quote) and any(item.quote in value for value in inputs))
+            or (
+                name == "url" and isinstance(item.observed_value, str) and bool(item.observed_value)
+                and any(item.observed_value in value for value in inputs)
+            )
+        )
+    ]
+    result = result.model_copy(update={"evidence": evidence})
+    if result.verdict == Verdict.SUSPECTED_SCAM and not evidence:
+        result = result.model_copy(update={
+            "verdict": Verdict.UNKNOWN,
+            "severity": Severity.UNKNOWN,
+            "score": None,
+            "detail": "Detector warning lacked evidence in the supplied input.",
+        })
+    return result
+
+
 async def _collect_live_results(
     tasks: dict[str, Awaitable[ModuleResult]], timeout_seconds: float
 ) -> dict[str, ModuleResult]:
@@ -53,7 +85,7 @@ async def _collect_live_results(
         name = reverse[task]
         try:
             results[name] = task.result()
-        except Exception:
+        except (Exception, asyncio.CancelledError):
             results[name] = unavailable_result(name, f"{name} service response was unavailable")
     for task in pending:
         name = reverse[task]
@@ -97,7 +129,10 @@ async def analyze(payload: AnalysisRequest, request: Request) -> AnalysisRespons
             tasks["text"] = clients.text(payload.text)
         if urls:
             tasks["url"] = clients.url(urls)
-        results.update(await _collect_live_results(tasks, settings.analysis_timeout_seconds))
+        live_results = await _collect_live_results(tasks, settings.analysis_timeout_seconds)
+        for name, result in live_results.items():
+            inputs = [payload.text] if name == "text" and payload.text else urls
+            results[name] = _ground_detector_result(name, result, inputs)
 
     response_status = analysis_status(results)
     verdict, severity = aggregate_verdict(response_status, results)
