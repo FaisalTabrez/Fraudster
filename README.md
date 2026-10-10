@@ -128,8 +128,11 @@ The partial check uses text plus an inert documentation-range URL. The unavailab
 | `OCR_SERVICE_URL` | `http://ocr:8000` | Optional private OCR endpoint |
 | `ANALYSIS_TIMEOUT_SECONDS` | `10` | Overall deadline; clients use a smaller derived timeout |
 | `DEMO_MODE` | `false` | Enables labeled, deterministic fixture responses |
-| `TEXT_MODEL` | `configure-me` | Future text-adapter model selection |
+| `TEXT_PROVIDER` | `anthropic` | Native Claude Messages API; use `openai_compatible` only for the legacy adapter |
+| `TEXT_MODEL` | `claude-haiku-5-5` | Claude model used for schema-constrained text classification |
 | `TEXT_API_KEY` | empty | Backend-only provider secret; never a `VITE_` variable |
+| `TEXT_API_BASE_URL` | `https://api.anthropic.com` | Backend-only provider base URL; never exposed to the browser |
+| `TEXT_TIMEOUT_SECONDS` | `8` | Text provider request deadline |
 | `WEB_PORT` | `4173` | Public Compose port |
 
 ## Team handoff

@@ -14,11 +14,13 @@ class PredictRequest(BaseModel):
 
 
 def create_app(detector: TextDetector | None = None) -> FastAPI:
+    provider = os.getenv("TEXT_PROVIDER", "anthropic").strip().lower()
     resolved = detector or TextDetector(
         model_name=os.getenv("TEXT_MODEL", "configure-me"),
         api_key_configured=bool(api_key := os.getenv("TEXT_API_KEY")),
         api_key=api_key,
-        api_base_url=os.getenv("TEXT_API_BASE_URL", "https://api.openai.com/v1"),
+        provider=provider,
+        api_base_url=os.getenv("TEXT_API_BASE_URL") or None,
         request_timeout_seconds=float(os.getenv("TEXT_TIMEOUT_SECONDS", "8")),
     )
     app = FastAPI(title="Fraudster text detector", version="0.1.0")
@@ -36,6 +38,7 @@ def create_app(detector: TextDetector | None = None) -> FastAPI:
             "status": resolved.state,
             "ready": resolved.ready,
             "adapter": "smishx-derived-text-only",
+            "provider": resolved.provider,
             "version": resolved.version,
         }
 
