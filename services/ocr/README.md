@@ -55,6 +55,8 @@ preserves implementation bytes, rebuilds RECORD, checks actual OpenCV distributi
 ownership and runs `pip check`. It does not modify installed packages in place.
 Use this command rather than installing the model requirements alone or mixing
 other OpenCV distributions into the environment. Docker uses the same installer.
+`constraints-model.txt` records all tested optional dependency versions so future
+resolver runs cannot silently change the verified CPU dependency graph.
 Sources, hashes and the metadata-only recipe are attributed in the manifest.
 
 The explicit `prepare` command downloads three **exact recorded** archives from Paddle's official

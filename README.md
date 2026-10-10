@@ -1,13 +1,13 @@
 # Fraudster scam warning prototype
 
-Fraudster is a runnable hackathon prototype for an explainable scam-warning flow. The interface accepts pasted text, URL strings, and conversation messages supplied by the user, sends them through one FastAPI gateway, and displays grounded evidence plus explicit coverage gaps. Optional screenshot OCR and local QR decoding now provide editable review before analysis; live P0 detector integration is still incomplete on main.
+Fraudster is a runnable hackathon prototype for an explainable scam-warning flow. The interface accepts pasted text, URL strings, and conversation messages supplied by the user, sends them through one FastAPI gateway, and displays grounded evidence plus explicit coverage gaps. Optional screenshot OCR and local QR decoding provide editable review before analysis; configuration-dependent checks stay explicitly unavailable when missing.
 
 The repository was empty at kickoff, so the requested layout was created directly without replacing an existing application or branding. `ScamShield` is not used as the repository or product name.
 
 ## Current runtime truth
 
 - Fixture mode is deterministic and visibly marked **Demo data** in every response and result view.
-- Default/live mode starts without paid credentials. The text service remains `unavailable`; the URL service uses a pinned string-only model and returns input-dependent results.
+- Default/live mode starts without paid credentials. Text requires a configured provider and otherwise remains `unavailable`; the URL service uses a pinned string-only model and returns input-dependent results.
 - The local conversation rules are active in both modes. They only combine risk signals from the same supplied sender and cite exact message IDs.
 - Aggregate `risk_score` is always null. The UI does not turn null into zero percent.
 - Submitted URLs are parsed as strings only. This scaffold does not fetch or open them.

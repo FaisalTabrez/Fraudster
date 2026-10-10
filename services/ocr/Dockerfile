@@ -7,6 +7,7 @@ WORKDIR /service
 RUN apt-get update && apt-get install -y --no-install-recommends libglib2.0-0 libgomp1 && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 COPY requirements-model.txt .
+COPY constraints-model.txt .
 COPY install_model.py runtime-wheels.json ./
 ARG INSTALL_OCR=false
 RUN pip install --no-cache-dir -r requirements.txt

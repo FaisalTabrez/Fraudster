@@ -1,6 +1,6 @@
 # Ingestion review follow-up (#9, #10, PR #22)
 
-Rebased onto main `6b9f7bf` (merged gateway PR #21), preserving its contract,
+Rebased onto main `e0c04be` (gateway PR #21, text PRs #19/#17, URL PRs #25/#26), preserving its contract,
 grounded-evidence and opaque-identity protections. Review update: 2026-10-10.
 Verified Windows x64 build 26200, Python 3.11.17, Node 24.21.0/npm 11.11.0;
 browser smoke used Playwright 1.58.2 / Chromium 145.
@@ -28,12 +28,13 @@ browser smoke used Playwright 1.58.2 / Chromium 145.
   verifies upstream wheel SHA-256, deterministically rebuilds RECORD/build
   metadata, checks actual OpenCV distribution ownership, and runs pip check.
   Fresh isolated installation and real PNG/JPEG inference passed.
+  Tested transitive dependency versions are constrained to prevent silent resolver drift.
 - Priya — browser OCR pixels: local image dimensions checked before screenshot
   upload, with blob cleanup and a no-upload regression. Server header checks
   remain authoritative and precede full pixel decode.
 - Priya — CI engine: Node pinned to 24.21.0, satisfying existing jsdom engines;
   the same checksum-verified Node patch was used locally without engine warnings.
-- Rebase/ownership handoff: current main includes merged gateway PR #21. The
+- Rebase/ownership handoff: current main includes gateway, text and URL integrations. The
   previous PR #18 handoff claim is removed. Contracts/ and root Compose wiring
   have no ingestion diff. CI's only change is the specifically requested Node
   patch pin. Owner approval is still pending; review requests are not approvals.
@@ -45,7 +46,8 @@ archives, compatibility wheels and synthetic inputs are not committed.
 
 | Exact command | Actual outcome |
 | --- | --- |
-| `.\.venv\test\Scripts\python.exe -m pytest -q services\gateway\tests services\text\tests services\ocr\tests tests\integration --basetemp=.venv\pytest-review-final --tb=short -p no:cacheprovider` | **84 passed** on rebased main |
+| `.\.venv\test\Scripts\python.exe -m pytest -q services\gateway\tests services\text\tests services\ocr\tests tests\integration --basetemp=.venv\pytest-latest-main --tb=short -p no:cacheprovider` | **95 passed** on latest rebased main |
+| `.\.venv\url-review\Scripts\python.exe -m pytest -q services\url\tests --basetemp=.venv\pytest-url-review --tb=short -p no:cacheprovider` | **37 passed** on Python 3.13.16 |
 | `npm.cmd ci` (apps/web, Node 24.21.0 first on PATH) | Passed; zero vulnerabilities; no engine warnings |
 | `npm.cmd run typecheck` (apps/web) | Passed |
 | `npm.cmd test` (apps/web) | **32 passed / 4 files** |
@@ -62,15 +64,18 @@ archives, compatibility wheels and synthetic inputs are not committed.
 
 An initial follow-up pytest invocation reused a temp directory across execution
 contexts and hit Windows permissions. A fresh workspace-local basetemp with the
-cache provider disabled passed all 84 tests. No application failure was hidden.
+cache provider disabled passed all tests. Main advanced during verification;
+README/notice conflicts were resolved preserving merged URL/text work, and the
+suite rerun against that main passed 95 tests. No application failure was hidden.
 Synthetic checks establish compatibility and behavior, not model performance.
 Task-started services are stopped after verification.
 
 ## Remaining limits and integration status
 
-Main has the reviewed gateway from PR #21, but live text/URL adapters are still
-unavailable. PR #22 remains draft pending owner approval and remaining live P0
-integration. All fixture outputs stay Demo data and aggregate risk_score stays
+Main has the reviewed gateway, text adapters and string-only URL adapter/evidence.
+Text requires provider configuration; paid live text and a configured live stack
+were not exercised. PR #22 remains draft pending owner reapproval and configured
+live-stack verification. All fixture outputs stay Demo data and aggregate risk_score stays
 null. No upstream implementation/model binary or private message is committed.
 
 English OCR only; errors require review/correction. Single QR codes supported;
