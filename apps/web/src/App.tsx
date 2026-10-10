@@ -34,7 +34,7 @@ export default function App() {
   };
 
   return (
-    <div className="fr app">
+    <div className="fr app glass-stage">
       <header className="fr-header app-header">
         <div className="fr-brand">
           <LogoMark size={40} />

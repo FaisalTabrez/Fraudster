@@ -4,14 +4,21 @@ import json
 import httpx
 import pytest
 
-from services.text.app.detector import DetectorUnavailable, TextDetector
+from services.text.app.detector import (
+    ANTHROPIC_API_VERSION,
+    PROMPT_VERSION,
+    DetectorUnavailable,
+    TextDetector,
+)
 from services.text.app.main import create_app
 
 
 @pytest.mark.asyncio
 async def test_text_service_starts_without_credentials_and_refuses_canned_prediction() -> None:
     app = create_app(TextDetector(model_name="configure-me", api_key_configured=False))
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
         assert (await client.get("/health/live")).status_code == 200
         assert (await client.get("/health/ready")).status_code == 503
         prediction = await client.post("/predict", json={"text": "hello"})
@@ -116,6 +123,126 @@ async def test_provider_api_failure_is_unavailable(monkeypatch) -> None:
         await detector.predict("hello")
 
     assert exc_info.value.code == "provider_unavailable"
+
+
+@pytest.mark.asyncio
+async def test_anthropic_messages_request_and_response_are_schema_constrained(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["url"] = str(request.url)
+        captured["headers"] = dict(request.headers)
+        captured["body"] = json.loads(request.content)
+        prediction = {
+            "verdict": "suspected_scam",
+            "severity": "high",
+            "evidence": [
+                {
+                    "indicator_type": "credential_request",
+                    "quote": "Send your password now.",
+                    "explanation": "The sender requests a secret credential.",
+                }
+            ],
+        }
+        return httpx.Response(
+            200,
+            json={
+                "id": "msg_test",
+                "type": "message",
+                "role": "assistant",
+                "content": [{"type": "text", "text": json.dumps(prediction)}],
+                "model": "claude-haiku-5-5",
+                "stop_reason": "end_turn",
+                "usage": {"input_tokens": 10, "output_tokens": 20},
+            },
+        )
+
+    real_async_client = httpx.AsyncClient
+
+    def client_factory(*args, **kwargs):
+        kwargs["transport"] = httpx.MockTransport(handler)
+        return real_async_client(*args, **kwargs)
+
+    monkeypatch.setattr("services.text.app.detector.httpx.AsyncClient", client_factory)
+    detector = TextDetector(
+        model_name="claude-haiku-5-5",
+        api_key_configured=True,
+        api_key="test-key",
+        provider="anthropic",
+    )
+
+    result = await detector.predict("Send your password now.")
+
+    assert result["verdict"] == "suspected_scam"
+    assert result["evidence"][0]["quote"] == "Send your password now."
+    assert captured["url"] == "https://api.anthropic.com/v1/messages"
+    headers = captured["headers"]
+    assert isinstance(headers, dict)
+    assert headers["x-api-key"] == "test-key"
+    assert headers["anthropic-version"] == ANTHROPIC_API_VERSION
+    body = captured["body"]
+    assert isinstance(body, dict)
+    assert body["model"] == "claude-haiku-5-5"
+    assert body["max_tokens"] == 512
+    assert body["messages"] == [{"role": "user", "content": "Send your password now."}]
+    assert PROMPT_VERSION in body["system"]
+    assert "untrusted data" in body["system"]
+    assert body["output_config"]["format"]["type"] == "json_schema"
+    assert body["output_config"]["format"]["schema"]["additionalProperties"] is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("stop_reason", ["refusal", "max_tokens"])
+async def test_anthropic_nonfinal_response_is_unavailable(monkeypatch, stop_reason: str) -> None:
+    async def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "content": [{"type": "text", "text": "not schema output"}],
+                "stop_reason": stop_reason,
+            },
+        )
+
+    real_async_client = httpx.AsyncClient
+
+    def client_factory(*args, **kwargs):
+        kwargs["transport"] = httpx.MockTransport(handler)
+        return real_async_client(*args, **kwargs)
+
+    monkeypatch.setattr("services.text.app.detector.httpx.AsyncClient", client_factory)
+    detector = TextDetector(
+        model_name="claude-haiku-5-5",
+        api_key_configured=True,
+        api_key="test-key",
+        provider="anthropic",
+    )
+
+    with pytest.raises(DetectorUnavailable) as exc_info:
+        await detector.predict("Ambiguous text")
+
+    assert exc_info.value.code == "invalid_provider_response"
+
+
+@pytest.mark.asyncio
+async def test_invalid_provider_is_not_ready() -> None:
+    detector = TextDetector(
+        model_name="claude-haiku-5-5",
+        api_key_configured=True,
+        api_key="test-key",
+        provider="unsupported",
+    )
+    app = create_app(detector)
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        readiness = await client.get("/health/ready")
+        prediction = await client.post("/predict", json={"text": "hello"})
+
+    assert readiness.status_code == 503
+    assert readiness.json()["status"] == "invalid_configuration"
+    assert prediction.status_code == 503
+    assert prediction.json()["detail"]["code"] == "invalid_configuration"
 
 
 @pytest.mark.asyncio

@@ -5,8 +5,11 @@ services:
     build:
       context: ./services/text
     environment:
-      TEXT_MODEL: ${TEXT_MODEL:-configure-me}
+      TEXT_PROVIDER: ${TEXT_PROVIDER:-anthropic}
+      TEXT_MODEL: ${TEXT_MODEL:-claude-haiku-5-5}
       TEXT_API_KEY: ${TEXT_API_KEY:-}
+      TEXT_API_BASE_URL: ${TEXT_API_BASE_URL:-https://api.anthropic.com}
+      TEXT_TIMEOUT_SECONDS: ${TEXT_TIMEOUT_SECONDS:-8}
     expose:
       - "8000"
     healthcheck:
@@ -37,8 +40,6 @@ services:
       OCR_SERVICE_URL: ${OCR_SERVICE_URL:-http://ocr:8000}
       ANALYSIS_TIMEOUT_SECONDS: ${ANALYSIS_TIMEOUT_SECONDS:-10}
       DEMO_MODE: ${DEMO_MODE:-false}
-      TEXT_MODEL: ${TEXT_MODEL:-configure-me}
-      TEXT_API_KEY: ${TEXT_API_KEY:-}
     expose:
       - "8000"
     depends_on:

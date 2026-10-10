@@ -29,6 +29,25 @@ def test_missing_fixture_has_setup_instruction(monkeypatch, tmp_path, capsys):
     assert "python tests/e2e/generate_ingestion.py" in capsys.readouterr().err
 
 
+def test_model_free_mode_does_not_need_generated_fixture(monkeypatch, tmp_path):
+    monkeypatch.setattr(smoke, "ROOT", tmp_path)
+    sizes = []
+
+    def upload(base, image):
+        sizes.append(len(image))
+        if len(image) == smoke.MAX_IMAGE_BYTES:
+            return 503, {"status": "unavailable", "text": None, "boxes": []}
+        return 413, {"status": "unavailable", "text": None, "boxes": [], "image": None, "detail": "Too large"}
+
+    def analyze(request, timeout):
+        raise HTTPError(request.full_url, 413, "Too large", {}, None)
+
+    monkeypatch.setattr(smoke, "upload", upload)
+    monkeypatch.setattr(smoke, "urlopen", analyze)
+    assert smoke.main(["--expect-ocr-unavailable"]) == 0
+    assert sizes == [5_000_000, 5_000_001, 5_065_536]
+
+
 @pytest.mark.parametrize("model_free", [False, True])
 def test_boundary_checks_from_another_directory(monkeypatch, tmp_path, model_free):
     fixture(monkeypatch, tmp_path)

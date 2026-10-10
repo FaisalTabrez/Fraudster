@@ -1,5 +1,6 @@
 """Opt-in public proxy limit regression; generated synthetic image only."""
 import argparse
+import base64
 import json
 from pathlib import Path
 from urllib.error import HTTPError
@@ -41,11 +42,18 @@ def main(argv=None):
     args = parser.parse_args(argv)
     # PNG readers permit trailing bytes: pad a tiny synthetic image to test the
     # transport boundary without allocating millions of decoded pixels.
-    fixture = ROOT / ".venv/ingestion-fixtures/synthetic-ocr.png"
-    if not fixture.is_file():
-        parser.error("Synthetic PNG fixture is missing. From the repository root, run "
-                     "python tests/e2e/generate_ingestion.py before this smoke check.")
-    image = fixture.read_bytes()
+    if args.expect_ocr_unavailable:
+        # Keep the model-free CI boundary check hermetic. PNG readers permit
+        # trailing bytes, so this one-pixel input can be safely padded below.
+        image = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+        )
+    else:
+        fixture = ROOT / ".venv/ingestion-fixtures/synthetic-ocr.png"
+        if not fixture.is_file():
+            parser.error("Synthetic PNG fixture is missing. From the repository root, run "
+                         "python tests/e2e/generate_ingestion.py before this smoke check.")
+        image = fixture.read_bytes()
     require(len(image) < MAX_IMAGE_BYTES, "Synthetic PNG must be smaller than 5,000,000 bytes.")
     padded = image + bytes(MAX_IMAGE_BYTES - len(image))
     code, result = upload(args.base_url, padded)
