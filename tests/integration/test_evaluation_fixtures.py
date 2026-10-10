@@ -147,8 +147,13 @@ def test_freeze_needs_two_distinct_reviewers_and_resolved_ambiguity(sandbox, cap
 
     sandbox("development", resolve)
     assert validate_fixtures.freeze(["development"]) == 0
+    frozen = fixture_set.load(fixture_set.SETS["development"])
+    assert frozen["metadata"]["freeze"]["status"] == "frozen"
+    assert frozen["metadata"]["freeze"]["frozen_at"]
     recorded = fixture_set.load_freeze()["sets"]["development"]["sha256"]
-    assert recorded == fixture_set.canonical_hash(fixture_set.load(fixture_set.SETS["development"]))
+    assert recorded == fixture_set.canonical_hash(frozen)
+    errors, _notes, _summary = validate_fixtures.validate()
+    assert errors == []
 
 
 def test_one_reviewer_listed_twice_is_not_two_reviewers(sandbox, capsys) -> None:
@@ -220,10 +225,31 @@ def test_report_never_claims_fixture_output_as_detection_performance() -> None:
     report = run_evaluation.build_report(records, set_name="development", document=document, mode="in-process")
     assert report["reportable_as_detection_performance"] is False
     reasons = " ".join(report["reasons_not_reportable"])
-    assert "not frozen" in reasons and "in-process" in reasons and "fixture-generated" in reasons
+    assert all(reason in reasons for reason in ("not frozen", "synthetic", "in-process", "fixture-generated"))
     assert report["fixture_sha256"] == fixture_set.canonical_hash(document)
     assert set(report["scam"]) == {"true_positive", "false_positive", "false_negative", "precision", "recall"}
     assert report["latency_ms"]["basis"] == "in-process call"
+
+
+def test_synthetic_live_run_is_never_reportable_as_detection_performance() -> None:
+    document = {
+        "metadata": {"freeze": {"status": "frozen"}, "synthetic": True},
+        "scenarios": [],
+    }
+    records = [{
+        "id": "SYN-1", "category": "benign_notification", "ambiguous": False,
+        "expected": "legitimate", "actual": "legitimate", "matched": True,
+        "http_status": 200, "latency_ms": 1.0, "status": "complete",
+        "fixture_generated": False, "versions": {"gateway": "test"},
+        "contract_violations": [], "expectation_failures": [],
+    }]
+    report = run_evaluation.build_report(
+        records, set_name="development", document=document, mode="http",
+    )
+    assert report["reportable_as_detection_performance"] is False
+    assert report["reasons_not_reportable"] == [
+        "the dataset is synthetic and cannot support a detection-performance claim",
+    ]
 
 
 def test_report_surfaces_a_violation_instead_of_hiding_it() -> None:

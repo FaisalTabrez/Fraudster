@@ -257,6 +257,8 @@ def build_report(
         not_reportable.append("the bootstrap set holds six contract examples, not a sprint set")
     if freeze.get("status") != "frozen":
         not_reportable.append("the set is not frozen: labels lack two reviewers")
+    if document.get("metadata", {}).get("synthetic") is True:
+        not_reportable.append("the dataset is synthetic and cannot support a detection-performance claim")
     if mode == "in-process":
         not_reportable.append("in-process mode uses fixture rules and stub detectors")
     if any(r.get("fixture_generated") for r in scored):

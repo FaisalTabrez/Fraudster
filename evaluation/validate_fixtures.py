@@ -12,8 +12,10 @@ import argparse
 import datetime
 import ipaddress
 import json
+import os
 import re
 import sys
+import tempfile
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -213,16 +215,38 @@ def validate() -> tuple[list[str], list[str], dict[str, Any]]:
     return errors, notes, summary
 
 
+def write_json_atomic(path: Path, document: dict[str, Any]) -> None:
+    """Replace one JSON document only after its complete contents are on disk."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w", encoding="utf-8", dir=path.parent, prefix=f".{path.name}.", suffix=".tmp", delete=False,
+        ) as handle:
+            json.dump(document, handle, indent=2, sort_keys=True)
+            handle.write("\n")
+            temporary = Path(handle.name)
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None and temporary.exists():
+            temporary.unlink()
+
+
 def freeze(splits: list[str]) -> int:
-    """Record content hashes, only when every label has two reviewers and ambiguity is resolved."""
+    """Freeze reviewed sets and hash their final, frozen representation."""
     errors, _notes, summary = validate()
-    blocking = [e for e in errors if "frozen but" not in e]
+    blocking = [
+        error for error in errors
+        if not any(error.startswith(f"{split}: frozen but") for split in splits)
+    ]
     if blocking:
         print("Cannot freeze: fix the structural errors first.", file=sys.stderr)
         for error in blocking:
             print(f"  - {error}", file=sys.stderr)
         return 1
     existing = fixture_set.load_freeze() or {"sets": {}}
+    prepared: dict[str, dict[str, Any]] = {}
+    stamp = datetime.date.today().isoformat()
     for split in splits:
         document = summary["documents"][split]
         scenarios = document["scenarios"]
@@ -232,12 +256,13 @@ def freeze(splits: list[str]) -> int:
             print(f"Cannot freeze {split}: {len(short)} scenarios lack two reviewers, "
                   f"{len(unresolved)} ambiguous scenarios lack a resolution.", file=sys.stderr)
             return 1
-        stamp = datetime.date.today().isoformat()
+        document["metadata"]["freeze"].update(status="frozen", frozen_at=stamp)
+        prepared[split] = document
         existing["sets"][split] = {"sha256": fixture_set.canonical_hash(document), "frozen_on": stamp}
-    fixture_set.FREEZE_FILE.write_text(
-        json.dumps(existing, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"Wrote {fixture_set.FREEZE_FILE.name}. Now set metadata.freeze.status to 'frozen' and frozen_at "
-          "in each frozen file, then rerun this check.")
+    for split, document in prepared.items():
+        write_json_atomic(fixture_set.SETS[split], document)
+    write_json_atomic(fixture_set.FREEZE_FILE, existing)
+    print(f"Froze {', '.join(splits)} and wrote matching hashes to {fixture_set.FREEZE_FILE.name}.")
     return 0
 
 
