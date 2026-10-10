@@ -1,0 +1,10 @@
+-r requirements.txt
+-c constraints-model.txt
+# Optional CPU inference, separate from the core app and model-free CI.
+# Install with install_model.py, which supplies hash-verified PaddleOCR 2.9.1
+# and imgaug 0.4.0 wheels with headless-only dependency metadata.
+paddlepaddle==2.6.2
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+# Paddle 2.6 imports setuptools at runtime; uv/Python 3.12+ do not seed it.
+setuptools==75.8.0

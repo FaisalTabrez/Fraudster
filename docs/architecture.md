@@ -22,7 +22,7 @@ FastAPI gateway
 - Gateway: Python 3.11. It validates the public contract, extracts URL strings without dereferencing them, calls applicable services concurrently, and keeps completed results when another call times out.
 - Text: Python 3.11. The process is live without credentials, but readiness and prediction remain unavailable until the SmishX adapter is repaired and configured.
 - URL: Python 3.13. The inspected upstream declares Python 3.13+, so it does not share the gateway environment.
-- OCR: optional Python service. It is excluded from the default dependency graph and does not download a model during bootstrap.
+- OCR: optional Python 3.11 service. It is excluded from the default dependency graph; explicit setup prepares verified English CPU models. Missing dependencies/assets keep extraction unavailable without preventing startup. Browser multipart uploads enter through gateway `/v1/extract`; only private OCR performs image validation/inference.
 
 ## Data flow
 
@@ -43,4 +43,4 @@ Applicable modules run under a ten-second overall default deadline and smaller p
 - No API keys in frontend variables.
 - No database or history persistence.
 - Fixture mode never calls external detectors and is marked in the response and UI.
-- QR decoding must remain local and must not open decoded content when implemented.
+- QR decoding is local. Uploaded images become temporary blob images; decoded text/URLs are reviewed before explicit submission to the existing analyze route. Decoded URLs are never opened or fetched, and payment recipients are never verified.
