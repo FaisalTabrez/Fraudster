@@ -1,6 +1,6 @@
 # Ingestion review follow-up (#9, #10, PR #22)
 
-Rebased onto main `e0c04be` (gateway PR #21, text PRs #19/#17, URL PRs #25/#26), preserving its contract,
+Initially rebased onto main `e0c04be` (gateway PR #21, text PRs #19/#17, URL PRs #25/#26), preserving its contract,
 grounded-evidence and opaque-identity protections. Review update: 2026-10-10.
 Verified Windows x64 build 26200, Python 3.11.17, Node 24.21.0/npm 11.11.0;
 browser smoke used Playwright 1.58.2 / Chromium 145.
@@ -84,8 +84,59 @@ image decode precedes local dimension discovery; server OCR limits headers befor
 full decode. One CPU worker may finish after caller timeout, but cannot admit
 more OCR work until it completes, and never persists results/images.
 
-Docker/Linux inference and paid live text inference remain unverified; Docker is
-absent. Model-enabled Compose still requires explicit build/model mounts. Current
-main has no conflicts after rebase; future main changes can require another
+Docker/Linux inference was unverified at the initial pass; the follow-up below
+verifies it. Paid live text inference remains unverified. Model-enabled Compose
+still requires explicit build/model mounts. Current main has no conflicts after integration; future main changes can require another
 rebase and verification. No future-conflict guarantee or reviewer sign-off is
 claimed. See component READMEs for setup and ownership boundaries.
+
+## Approved-source follow-up and current-main integration
+
+Both reviewers approved source head `f9517de`, while explicitly keeping the PR
+draft pending live-stack verification. Main subsequently advanced to `ba58d91`
+(merged frontend PR #23); it was merged into the ingestion branch without
+conflicts. Frontend/API/scan/result hardening is preserved, with **113 web tests**
+now passing. No other open issues are assigned to Likhitha beyond #9 and #10.
+
+Docker Desktop is now available (engine 29.7.2, Compose 5.4.0, Linux x86_64/WSL2
+kernel 5.15.167.4, glibc 2.41, Python 3.11.17). The isolated test project is
+`fraudster-pr22-review`, public port 4174. Its ignored local override only mounts
+the verified `.venv/review-models` read-only at `/service/models` and sets
+`OCR_MODEL_DIR`; root Compose is unchanged.
+
+The container test exposed Nginx's default 1 MB upload ceiling. The public API
+proxy now permits exactly 5,000,000 + 65,536 bytes of multipart envelope, matching
+the gateway, and streams uploads instead of buffering them to disk. The new
+public-boundary regression passes a synthetic PNG padded to exactly 5 MB and
+rejects one extra byte with a contract-shaped unavailable response.
+
+| Exact follow-up command | Outcome |
+| --- | --- |
+| `.\.venv\test\Scripts\python.exe -m pytest -q services\gateway\tests services\text\tests services\ocr\tests tests\integration --basetemp=.venv\pytest-main-web-integration --tb=short -p no:cacheprovider` | 95 passed |
+| `.\.venv\url-review\Scripts\python.exe -m pytest -q services\url\tests --basetemp=.venv\pytest-main-web-url --tb=short -p no:cacheprovider` | 37 passed |
+| `npm.cmd run typecheck`; `npm.cmd test`; `npm.cmd run build` (apps/web, Node 24.21.0 first on PATH) | Passed; 113 tests / 6 files; production build passed |
+| `docker compose -p fraudster-pr22-review --profile ocr build --build-arg INSTALL_OCR=true ocr` | Linux CPU image built; one OpenCV distribution and pip check passed |
+| `docker compose -p fraudster-pr22-review build web gateway text url` | All images built; web rebuild after proxy fix also passed |
+| `$env:WEB_PORT='4174'; $env:DEMO_MODE='true'; docker compose -p fraudster-pr22-review -f compose.yaml -f .venv/pr22-compose.yaml --profile ocr up -d --no-build --wait --wait-timeout 90 ocr web` | Stack healthy; OCR readiness confirmed |
+| `docker run --rm --network none --mount type=bind,source=C:/Users/likhi/Fraud,target=/workspace,readonly --mount type=bind,source=C:/Users/likhi/Fraud/.venv/review-models,target=/models,readonly -w /workspace -e OCR_MODEL_DIR=/models fraudster-pr22-review-ocr python -m services.ocr.verify_model` | Non-root Linux PNG/JPEG CPU inference passed, dimensions/boxes present, no network available |
+| `.\.venv\test\Scripts\python.exe tests\e2e\upload_limit_smoke.py --base-url http://127.0.0.1:4174/api` | Exactly 5 MB accepted, one byte over rejected with unavailable 413 |
+| `$env:INGESTION_BASE_URL='http://127.0.0.1:4174'; $env:PLAYWRIGHT_BROWSERS_PATH="$PWD\.venv\browsers"; .\.venv\node-review\node-v24.21.0-win-x64\node.exe tests\e2e\ingestion_smoke.mjs` | Actual Linux OCR/edit/demo analysis + local QR browser flows passed; zero external requests |
+| `.\.venv\test\Scripts\python.exe scripts\smoke.py --base-url http://127.0.0.1:4174/api --expect fixture` | Passed; fixture outputs visibly marked Demo data |
+| `$env:WEB_PORT='4174'; $env:DEMO_MODE='false'; docker compose -p fraudster-pr22-review -f compose.yaml -f .venv/pr22-compose.yaml --profile ocr up -d --no-build --wait --wait-timeout 90 gateway web` followed by `.\.venv\test\Scripts\python.exe scripts\smoke.py --base-url http://127.0.0.1:4174/api --expect any` | Non-demo stack passed; readiness 503 with missing text provider, partial coverage, fixture_generated false, risk_score null |
+| `docker compose -p fraudster-pr22-review exec -T ocr python -m pip check` | No broken requirements found |
+
+The initial public-limit test failed at the original proxy with HTML 413; after
+the fix it reached the gateway but returned 503 before OCR was started. With
+verified OCR running, it passed fully. These failures exposed setup/boundary
+conditions and were not reported as successful extraction.
+
+Priya's nonblocking installer suggestion is documented: `--no-deps` alone leaves
+GUI OpenCV requirements in upstream metadata and fails dependency validation;
+temporary compatibility wheels keep metadata consistent with the single selected
+runtime. A future public OCR deployment should also bound upload read time; the
+current private OCR is only fed a fully buffered, bounded gateway upload.
+
+**Still pending before leaving draft:** configured live text provider verification
+(no TEXT_API_KEY/TEXT_MODEL available), and review of the new proxy/integration
+follow-up. Earlier approvals apply to `f9517de`; they are not claimed as exact-head
+approval of subsequent changes. Issues remain open until a permitted merge.
