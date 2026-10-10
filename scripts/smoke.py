@@ -35,21 +35,22 @@ def post_json(url: str, payload: dict) -> tuple[int, dict]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--base-url", default="http://127.0.0.1:4173/api")
-    parser.add_argument("--expect", choices=("fixture", "unavailable", "any"), default="any")
+    parser.add_argument("--expect", choices=("fixture", "partial", "unavailable", "any"), default="any")
     args = parser.parse_args()
     base = args.base_url.rstrip("/")
 
     try:
         live_status, live = get_json(f"{base}/health/live")
         ready_status, ready = get_json(f"{base}/health/ready")
+        payload = {
+            "text": "Urgent: send your OTP to verify your account.",
+            "urls": [] if args.expect == "unavailable" else ["http://192.0.2.10/verify"],
+            "messages": [],
+            "source": "manual",
+        }
         analyze_status, analysis = post_json(
             f"{base}/v1/analyze",
-            {
-                "text": "Urgent: send your OTP to verify your account.",
-                "urls": ["http://192.0.2.10/verify"],
-                "messages": [],
-                "source": "manual",
-            },
+            payload,
         )
     except (URLError, TimeoutError, json.JSONDecodeError) as exc:
         print(f"smoke: connection or JSON failure: {exc}", file=sys.stderr)
@@ -70,6 +71,11 @@ def main() -> int:
         assert analysis["fixture_generated"] is False
         assert analysis["status"] == "unavailable"
         assert analysis["verdict"] == "unknown"
+    if args.expect == "partial":
+        assert analysis["fixture_generated"] is False
+        assert analysis["status"] == "partial"
+        assert analysis["coverage"]["url"] == "complete"
+        assert analysis["coverage"]["text"] == "unavailable"
 
     print(
         json.dumps(

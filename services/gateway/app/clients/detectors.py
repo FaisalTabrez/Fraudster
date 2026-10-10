@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 import httpx
@@ -25,6 +26,27 @@ class DetectorClients:
             self.settings.url_service_url,
             {"urls": urls},
         )
+
+    async def readiness(self) -> dict[str, dict[str, object]]:
+        """Probe only the fixed private detector endpoints; never include submitted data."""
+        names = ("text", "url")
+        checks = await asyncio.gather(
+            self._ready("text", self.settings.text_service_url),
+            self._ready("url", self.settings.url_service_url),
+        )
+        return dict(zip(names, checks, strict=True))
+
+    async def _ready(self, name: str, base_url: str) -> dict[str, object]:
+        endpoint = f"{base_url.rstrip('/')}/health/ready"
+        timeout = min(2.0, self.settings.detector_timeout_seconds)
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                response = await client.get(endpoint)
+            body = response.json()
+            ready = response.status_code == 200 and isinstance(body, dict) and body.get("ready") is True
+        except (httpx.HTTPError, ValueError, TypeError):
+            ready = False
+        return {"ready": ready, "status": "ready" if ready else "unavailable", "service": name}
 
     async def _post(self, name: str, base_url: str, payload: dict[str, Any]) -> ModuleResult:
         endpoint = f"{base_url.rstrip('/')}/predict"

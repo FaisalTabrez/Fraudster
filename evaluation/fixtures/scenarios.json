@@ -3,11 +3,15 @@
     "version": "0.1.0",
     "purpose": "Bootstrap contract scenarios, not a detection-performance dataset",
     "synthetic": true,
-    "review_status": "single_author_bootstrap; Priya must freeze and dual-review the sprint set"
+    "review_status": "single_author_bootstrap; Priya must freeze and dual-review the sprint set",
+    "holdout_frozen": false,
+    "holdout_tuning_prohibited": true
   },
   "scenarios": [
     {
       "id": "SYN-TEXT-001",
+      "split": "bootstrap",
+      "case_kind": "contract",
       "expected_verdict": "suspected_scam",
       "input": {
         "text": "Your account expires today. Send your OTP now to verify the account.",
@@ -16,10 +20,13 @@
         "source": "manual"
       },
       "support": "Request to disclose an OTP under time pressure",
-      "reviewer": null
+      "provenance": {"type": "synthetic", "source": "team-authored bootstrap"},
+      "reviewers": []
     },
     {
       "id": "SYN-TEXT-002",
+      "split": "bootstrap",
+      "case_kind": "contract",
       "expected_verdict": "legitimate",
       "input": {
         "text": "Your OTP is 314159. Do not share it with anyone.",
@@ -28,10 +35,13 @@
         "source": "manual"
       },
       "support": "Authored OTP notification that warns against sharing",
-      "reviewer": null
+      "provenance": {"type": "synthetic", "source": "team-authored bootstrap"},
+      "reviewers": []
     },
     {
       "id": "SYN-TEXT-003",
+      "split": "bootstrap",
+      "case_kind": "contract",
       "expected_verdict": "spam",
       "input": {
         "text": "Weekend sale: 30 percent discount. Reply STOP to unsubscribe.",
@@ -40,10 +50,13 @@
         "source": "manual"
       },
       "support": "Authored promotion",
-      "reviewer": null
+      "provenance": {"type": "synthetic", "source": "team-authored bootstrap"},
+      "reviewers": []
     },
     {
       "id": "SYN-URL-001",
+      "split": "bootstrap",
+      "case_kind": "contract",
       "expected_verdict": "suspected_scam",
       "input": {
         "urls": ["http://192.0.2.10/verify"],
@@ -51,10 +64,13 @@
         "source": "manual"
       },
       "support": "Fixture URL with an IP-address host",
-      "reviewer": null
+      "provenance": {"type": "synthetic", "source": "team-authored bootstrap"},
+      "reviewers": []
     },
     {
       "id": "SYN-CONV-001",
+      "split": "bootstrap",
+      "case_kind": "contract",
       "expected_verdict": "suspected_scam",
       "input": {
         "messages": [
@@ -65,10 +81,13 @@
         "source": "conversation"
       },
       "support": "Same supplied sender escalates from urgency to a secret request",
-      "reviewer": null
+      "provenance": {"type": "synthetic", "source": "team-authored bootstrap"},
+      "reviewers": []
     },
     {
       "id": "SYN-CONV-002",
+      "split": "bootstrap",
+      "case_kind": "contract",
       "expected_verdict": "unknown",
       "input": {
         "messages": [
@@ -79,7 +98,8 @@
         "source": "conversation"
       },
       "support": "Signals from different senders must not be joined",
-      "reviewer": null
+      "provenance": {"type": "synthetic", "source": "team-authored bootstrap"},
+      "reviewers": []
     }
   ]
 }

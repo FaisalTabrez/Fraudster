@@ -20,7 +20,7 @@ FastAPI gateway
 
 - Web: Node 24 LTS, React, TypeScript, and Vite. Development proxy and packaged Nginx both remove the `/api` prefix before forwarding.
 - Gateway: Python 3.11. It validates the public contract, extracts URL strings without dereferencing them, calls applicable services concurrently, and keeps completed results when another call times out.
-- Text: Python 3.11. The process is live without credentials, but readiness and prediction remain unavailable until the SmishX adapter is repaired and configured.
+- Text: Python 3.11. The reviewed structured adapter is installed. The process remains live without credentials, while readiness and prediction stay unavailable until an OpenAI-compatible provider and model are configured.
 - URL: Python 3.13. The inspected upstream declares Python 3.13+, so it does not share the gateway environment.
 - OCR: optional Python 3.11 service. It is excluded from the default dependency graph; explicit setup prepares verified English CPU models. Missing dependencies/assets keep extraction unavailable without preventing startup. Browser multipart uploads enter through gateway `/v1/extract`; only private OCR performs image validation/inference.
 
@@ -32,7 +32,7 @@ Conversation rules group supplied messages by sender. A warning can combine urge
 
 ## Availability policy
 
-Liveness means the process can answer. Readiness means the configured mode can produce the promised detector behavior. Live-mode detector shells are live but not ready. The Compose health chain uses liveness so the interface remains available to explain missing detection.
+Liveness means the process can answer. Readiness means the configured mode can produce the promised detector behavior. Fixture mode is immediately ready. In live mode, the gateway probes the fixed private text and URL readiness endpoints concurrently and returns ready only when both are ready; it reports each unavailable detector without exposing provider details. The Compose health chain intentionally uses liveness so the interface remains available to explain partial or unavailable detection.
 
 Applicable modules run under a ten-second overall default deadline and smaller per-service timeouts. A completed module survives another module's timeout. One missing applicable module makes the response partial; all applicable detector modules unavailable makes it unavailable with unknown verdict and severity. Reputation is not run in the bootstrap.
 
@@ -44,3 +44,4 @@ Applicable modules run under a ten-second overall default deadline and smaller p
 - No database or history persistence.
 - Fixture mode never calls external detectors and is marked in the response and UI.
 - QR decoding is local. Uploaded images become temporary blob images; decoded text/URLs are reviewed before explicit submission to the existing analyze route. Decoded URLs are never opened or fetched, and payment recipients are never verified.
+- Glass morphism is progressive presentation only. Unsupported or reduced-transparency environments receive opaque cards, while verdict, coverage, demo, focus, and control semantics remain independent of blur.

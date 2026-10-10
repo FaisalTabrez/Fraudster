@@ -1,6 +1,8 @@
 # End to end checks
 
-Priya owns browser-level tests after the frozen P0 UI is merged. The bootstrap keeps this directory as the agreed boundary. E2E checks must use fixture mode or local inert URLs, must never open submitted links, and must assert that unavailable coverage and the Demo data badge remain visible.
+`core_smoke.mjs` is the keyless CI browser check against the packaged fixture-mode origin. It verifies submission, result focus, the permanent Demo data label, absent zero-risk presentation, deceptive-authority URL rendering, and that no request leaves the local web origin. E2E checks use fixture mode or inert URLs and never open submitted links.
+
+With the fixture Compose stack running and Chromium installed through Playwright, run `npm --prefix apps/web run test:e2e` from the repository root.
 
 # Optional real-browser ingestion smoke
 
