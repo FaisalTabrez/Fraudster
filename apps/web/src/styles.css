@@ -69,11 +69,16 @@ body { min-width: 320px; }
 .details-note { margin: 4px 0 20px; }
 .fr-banner > div > div { margin-top: 2px; }
 
-/* IngestionStatus (owned elsewhere) keeps its own markup; it is styled as a quiet note. */
-.ingestion-status { padding: 20px; border: 1px dashed var(--line-strong); border-radius: var(--radius-16); color: var(--ink-2); font-size: 15px; line-height: 1.5; }
-.ingestion-status .eyebrow { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--eyebrow); }
-.ingestion-status h2 { margin: 4px 0 6px; font-size: 17px; font-weight: 600; color: var(--ink); }
-.ingestion-status p { margin: 0; }
+/* Screenshot and QR ingestion panel: same card language as the form. */
+.ingestion-status { padding: 28px; display: flex; flex-direction: column; gap: 16px; }
+.ingestion-status h2 { margin: 0; }
+.ingestion-status p { margin: 0; color: var(--ink-2); font-size: 15px; line-height: 1.5; }
+.ingestion-status .fr-banner { margin: 0; }
+.ingestion-status select, .ingestion-status input[type="file"] { font: inherit; min-height: var(--control-min); padding: 8px 14px; border: 1px solid var(--line-strong); border-radius: var(--radius-12); background: var(--surface); color: var(--ink); font-weight: 400; }
+.ingestion-status pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 8px 0 0; padding: 12px 14px; border-radius: var(--radius-10); background: var(--sunken); font-family: var(--font-mono); font-size: 14px; }
+.ingestion-status details { margin-block: 4px; }
+.ingestion-status summary { min-height: var(--control-min); display: flex; align-items: center; color: var(--brand); font-weight: 600; cursor: pointer; }
+.ingestion-status li { overflow-wrap: anywhere; font-size: 14px; }
 
 /* ---- Mobile: one column, sticky submit, 390px target ---- */
 @media (max-width: 960px) {
@@ -86,7 +91,7 @@ body { min-width: 320px; }
   .scan-submit { position: sticky; bottom: 0; z-index: 3; margin: 0 -20px -20px; padding: 12px 20px 16px; background: var(--ground); border-top: 1px solid var(--line); border-radius: 0 0 var(--radius-16) var(--radius-16); }
   .fr-action { padding: 20px; }
   .fr-action__title { font-size: 26px; line-height: 1.18; }
-  .empty-result, .result-card { padding: 20px; }
+  .empty-result, .result-card, .ingestion-status { padding: 20px; }
   .fr-details { padding: 0 20px; }
   .fr-details table { display: block; overflow-x: auto; }
 }

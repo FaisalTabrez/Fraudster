@@ -3,7 +3,7 @@ import { useState } from "react";
 import { analyze } from "./api/analysis";
 import { Icon } from "./components/Icon";
 import { LogoMark } from "./components/Logo";
-import { IngestionStatus } from "./features/ingestion/IngestionStatus";
+import { IngestionPanel } from "./features/ingestion/IngestionPanel";
 import { ResultPanel } from "./features/results/ResultPanel";
 import { ScanForm } from "./features/scan/ScanForm";
 import type { AnalysisRequest, AnalysisResponse } from "./types/analysis";
@@ -72,7 +72,7 @@ export default function App() {
                 </p>
               </div>
             )}
-            <IngestionStatus />
+            <IngestionPanel busy={busy} onSubmit={submit} />
           </section>
         </div>
       </main>

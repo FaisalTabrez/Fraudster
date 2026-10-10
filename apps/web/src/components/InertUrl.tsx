@@ -4,8 +4,11 @@ import { Icon } from "./Icon";
 // no <a href>, no underline, no pointer cursor. The host is emphasised, scheme and path dimmed.
 export function InertUrl({ value, badge = true }: { value: string; badge?: boolean }) {
   const parts = /^([a-z][a-z0-9+.-]*:\/\/)?([^/?#\s]*)(.*)$/i.exec(value);
-  const scheme = parts?.[1] ?? "";
-  const host = parts?.[2] ?? value;
+  const authority = parts?.[2] ?? value;
+  // Dim anything before "@": "https://google.com@evil.example/" really goes to evil.example.
+  const at = authority.lastIndexOf("@");
+  const scheme = (parts?.[1] ?? "") + (at >= 0 ? authority.slice(0, at + 1) : "");
+  const host = at >= 0 ? authority.slice(at + 1) : authority;
   const rest = parts?.[3] ?? "";
   return (
     <span className="fr-url">

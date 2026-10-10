@@ -92,6 +92,7 @@ describe("ResultPanel", () => {
     expect(container.querySelector(".fr-action")).toHaveClass("fr-tone-unknown");
     expect(container.querySelector(".fr-action")).not.toHaveClass("fr-tone-clear");
 
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("Only some checks ran");
     rerender(<ResultPanel result={unavailableResponse} />);
     expect(container.querySelector(".fr-action")).toHaveClass("fr-tone-unknown");
     expect(container.querySelector(".fr-action")).toHaveTextContent("No checks completed");
