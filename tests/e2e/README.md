@@ -33,3 +33,15 @@ no automatic analysis, unsupported payment payload, invalid/no-code images,
 cleared stale review, and no external browser requests. It saves a synthetic-only
 screenshot under ignored `.venv/`. This opt-in test is separate from model-free
 CI and does not require changing existing P0 checks.
+
+With the model-enabled container stack running, also test the public Nginx
+upload boundary (not just Vite or the private gateway):
+
+```powershell
+python tests/e2e/upload_limit_smoke.py --base-url http://127.0.0.1:4174/api
+```
+
+This pads the generated synthetic PNG to exactly 5,000,000 bytes, verifies OCR
+succeeds through the public proxy, and checks that one extra byte receives a
+contract-shaped 413 unavailable result. Nginx permits the gateway's bounded
+multipart envelope and streams requests instead of buffering uploads to disk.
