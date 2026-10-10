@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { Icon } from "../../components/Icon";
+import { GlassButton } from "../../glass";
 import type { ConversationMessage } from "../../types/analysis";
 
 // Limit mirrors contracts/analysis-request.schema.json.
@@ -56,7 +57,7 @@ export function ConversationEditor({ messages, onChange }: Props) {
         Sender IDs are compared exactly as typed, including spaces.
       </p>
       {messages.map((message, index) => (
-        <div className="message-row" role="group" aria-labelledby={`message-${message.id}-title`} key={message.id}>
+        <div className="message-row glass glass--1" role="group" aria-labelledby={`message-${message.id}-title`} key={message.id}>
           <div className="message-row-head">
             <strong id={`message-${message.id}-title`}>Message <code className="fr-chip fr-mono">{message.id}</code></strong>
             <button
@@ -72,7 +73,7 @@ export function ConversationEditor({ messages, onChange }: Props) {
             <label htmlFor={`message-${message.id}-sender`}>Sender ID</label>
             <input
               id={`message-${message.id}-sender`}
-              className="fr-input"
+              className="fr-input glass-control"
               maxLength={128}
               value={message.sender_id}
               onChange={(event) => update(index, { sender_id: event.target.value })}
@@ -84,6 +85,7 @@ export function ConversationEditor({ messages, onChange }: Props) {
             <label htmlFor={`message-${message.id}-text`}>Message</label>
             <textarea
               id={`message-${message.id}-text`}
+              className="glass-control"
               maxLength={2000}
               rows={2}
               value={message.text}
@@ -97,15 +99,9 @@ export function ConversationEditor({ messages, onChange }: Props) {
       <p className="fr-hint message-count" aria-live="polite">
         {messages.length} / {MAX_MESSAGES} messages{full ? ". Remove one to add another." : ""}
       </p>
-      <button
-        ref={addButton}
-        className="fr-btn fr-btn--secondary"
-        type="button"
-        onClick={addMessage}
-        aria-disabled={full}
-      >
+      <GlassButton ref={addButton} onClick={addMessage} aria-disabled={full}>
         Add supplied message
-      </button>
+      </GlassButton>
     </fieldset>
   );
 }

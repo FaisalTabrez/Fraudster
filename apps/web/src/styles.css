@@ -37,10 +37,9 @@ body { min-width: 320px; }
 
 /* ---- Conversation editor ---- */
 .conversation-editor { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
-.message-row { display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-12); background: var(--ground); }
+.message-row { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: var(--radius-12); }
 .message-row-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .message-row-head .fr-chip { min-height: 28px; padding: 0 10px; margin-left: 6px; font-size: 13px; }
-.message-row .fr-field textarea { border-radius: var(--radius-10); }
 .message-count { margin: 0; }
 .fr-btn[aria-disabled="true"] { cursor: not-allowed; opacity: 0.6; }
 
@@ -88,7 +87,7 @@ body { min-width: 320px; }
   .page-title { font-size: 28px; line-height: 1.2; letter-spacing: -0.015em; }
   .app-grid { grid-template-columns: 1fr; gap: 20px; }
   .scan-card { padding: 20px; }
-  .scan-submit { position: sticky; bottom: 0; z-index: 3; margin: 0 -20px -20px; padding: 12px 20px 16px; background: var(--ground); border-top: 1px solid var(--line); border-radius: 0 0 var(--radius-16) var(--radius-16); }
+  .scan-submit { position: sticky; bottom: 0; z-index: 3; margin: 0 -20px -20px; padding: 12px 20px 16px; background: var(--glass-3-fill); -webkit-backdrop-filter: var(--glass-3-blur); backdrop-filter: var(--glass-3-blur); border-top: 1px solid var(--glass-edge); border-radius: 0 0 var(--radius-16) var(--radius-16); }
   .fr-action { padding: 20px; }
   .fr-action__title { font-size: 26px; line-height: 1.18; }
   .empty-result, .result-card, .ingestion-status { padding: 20px; }

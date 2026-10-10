@@ -61,7 +61,7 @@ describe("glass contrast (WCAG AA)", () => {
   }
 
   it("field: text, placeholder and error text pass on the field fill", () => {
-    const fill = over(surface, 0.78, glow);
+    const fill = over(surface, percent("glass-field-alpha"), glow);
     expect(ratio(rgb(token("ink")), fill)).toBeGreaterThanOrEqual(7);
     expect(ratio(rgb(token("caption")), fill)).toBeGreaterThanOrEqual(4.5);
     expect(ratio(rgb(token("scam-fg")), fill)).toBeGreaterThanOrEqual(4.5);
