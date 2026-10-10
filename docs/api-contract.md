@@ -3,7 +3,7 @@
 ## Public routes
 
 - `POST /v1/analyze` accepts the frozen JSON request and returns the frozen analysis response.
-- `POST /v1/extract` is reserved for PNG/JPEG screenshot extraction and currently returns HTTP 503 with the extraction response shape.
+- `POST /v1/extract` accepts one PNG/JPEG multipart `file`, forwarding to optional private OCR. All extraction results use the existing extraction response shape.
 - `GET /health/live` reports a running process.
 - `GET /health/ready` returns HTTP 200 in fixture mode and HTTP 503 in the scaffolded live mode.
 
@@ -40,6 +40,6 @@ Text and URL services expose `POST /predict` plus health routes. The text predic
 
 ## Extraction boundary
 
-The P1 route will accept multipart PNG/JPEG input, reject unsupported formats, enforce 5 MB and 20 million decoded pixels, and return editable text plus coordinate boxes and image dimensions. Until those checks and a verified CPU model exist, the route remains unavailable.
+The route accepts one multipart `file`, with a 5,000,000-byte image limit and a bounded 65,536-byte multipart envelope. Private OCR validates PNG/JPEG content and headers, enforces 20 million decoded pixels before decoding/inference, and returns editable text plus boxes and image dimensions. HTTP 413/415/422/503 responses use `status=unavailable`, null text, empty boxes, and explicit details; dimensions are included when known. Missing OCR does not prevent analysis. See `services/ocr/README.md` for optional English CPU model setup.
 
 The machine-readable source of truth is in `contracts/`. Examples are illustrative contract fixtures, not live predictions.

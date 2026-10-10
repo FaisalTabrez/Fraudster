@@ -4,6 +4,7 @@ from fastapi import FastAPI, Response, status
 
 from .clients.detectors import DetectorClients
 from .routes.analyze import router as analyze_router
+from .routes.extract import router as extract_router
 from .settings import Settings
 
 
@@ -17,6 +18,7 @@ def create_app(settings: Settings | None = None, detectors: DetectorClients | No
     app.state.settings = resolved
     app.state.detectors = detectors or DetectorClients(resolved)
     app.include_router(analyze_router)
+    app.include_router(extract_router)
 
     @app.get("/health/live")
     async def live() -> dict[str, object]:
