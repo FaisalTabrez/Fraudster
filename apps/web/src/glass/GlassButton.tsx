@@ -7,15 +7,22 @@ interface Props extends ComponentPropsWithRef<"button"> {
   variant?: "glass" | "primary";
 }
 
-export function GlassButton({ variant = "glass", className = "", type = "button", ...rest }: Props) {
+export function GlassButton({ variant = "glass", className = "", type = "button", onPointerMove, onPointerLeave, ...rest }: Props) {
   const specular = useSpecular();
   return (
     <button
       type={type}
       data-interactive=""
       className={`glass glass--2 glass-btn ${variant === "primary" ? "glass-btn--primary" : ""} ${className}`.trim()}
-      {...specular}
       {...rest}
+      onPointerMove={(event) => {
+        specular.onPointerMove(event);
+        onPointerMove?.(event);
+      }}
+      onPointerLeave={(event) => {
+        specular.onPointerLeave(event);
+        onPointerLeave?.(event);
+      }}
     />
   );
 }

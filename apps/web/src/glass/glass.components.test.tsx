@@ -53,6 +53,20 @@ describe("GlassTabs", () => {
 });
 
 describe("GlassField", () => {
+  it("keeps the highlight and still calls the caller's pointer handlers", () => {
+    const onPointerMove = vi.fn();
+    const onPointerLeave = vi.fn();
+    render(<GlassButton onPointerMove={onPointerMove} onPointerLeave={onPointerLeave}>Go</GlassButton>);
+    const button = screen.getByRole("button", { name: "Go" });
+    button.getBoundingClientRect = () => ({ left: 0, top: 0, width: 10, height: 10, right: 10, bottom: 10, x: 0, y: 0, toJSON: () => ({}) });
+    fireEvent.pointerMove(button, { clientX: 5, clientY: 5 });
+    expect(onPointerMove).toHaveBeenCalledTimes(1);
+    expect(button.style.getPropertyValue("--mx")).not.toBe("");
+    fireEvent.pointerLeave(button);
+    expect(onPointerLeave).toHaveBeenCalledTimes(1);
+    expect(button.style.getPropertyValue("--mx")).toBe("");
+  });
+
   it("ties label, hint and error to the input", () => {
     render(<GlassField label="Sender ID" hint="Compared exactly." error="Required." />);
     const input = screen.getByLabelText("Sender ID");
