@@ -43,6 +43,21 @@ describe("ScanForm input types", () => {
     expect(screen.getByLabelText(MESSAGE_LABEL)).toHaveValue("Synthetic message");
   });
 
+  it("renders the form on glass: card, segmented control, controls and a primary glass submit", () => {
+    const { container } = render(<ScanForm busy={false} onSubmit={vi.fn()} />);
+    expect(container.querySelector("form")).toHaveClass("glass", "glass--1");
+    expect(container.querySelector(".fr-seg")).toHaveClass("glass-seg");
+    expect(screen.getByLabelText(MESSAGE_LABEL)).toHaveClass("glass-control");
+    const submit = screen.getByRole("button", { name: "Check this message" });
+    expect(submit).toHaveClass("glass-btn--primary");
+    expect(submit).toHaveAttribute("type", "submit");
+    choose("Link");
+    expect(screen.getByLabelText(LINKS_LABEL)).toHaveClass("glass-control");
+    choose("Conversation");
+    expect(screen.getByLabelText("Your sender ID in this conversation")).toHaveClass("glass-control");
+    expect(screen.getByRole("button", { name: "Add supplied message" })).toHaveClass("glass-btn");
+  });
+
   it("labels the submit button for the chosen type", () => {
     setup();
     expect(screen.getByRole("button", { name: "Check this message" })).toBeInTheDocument();

@@ -1,8 +1,8 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ComponentPropsWithRef } from "react";
 
 import { useSpecular } from "./useSpecular";
 
-interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface Props extends ComponentPropsWithRef<"button"> {
   /** "glass" is translucent with brand text; "primary" is brand-tinted glass with on-brand text. */
   variant?: "glass" | "primary";
 }
