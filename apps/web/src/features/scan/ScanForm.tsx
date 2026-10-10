@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 
 import { Icon, type IconName } from "../../components/Icon";
 import { InertUrl } from "../../components/InertUrl";
+import { GlassButton } from "../../glass";
 import type { AnalysisRequest, ConversationMessage } from "../../types/analysis";
 import { ConversationEditor } from "../conversation/ConversationEditor";
 
@@ -89,13 +90,13 @@ export function ScanForm({ busy, onSubmit }: Props) {
   const active = modes.find((candidate) => candidate.id === mode)!;
 
   return (
-    <form className="fr-card scan-card" onSubmit={submit} aria-labelledby="scan-heading">
+    <form className="fr-card scan-card glass glass--1" onSubmit={submit} aria-labelledby="scan-heading">
       <div>
         <p className="fr-eyebrow">Step 1</p>
         <h2 id="scan-heading" className="fr-h2">What did you receive?</h2>
       </div>
 
-      <div className="fr-seg fr-seg--fill" role="group" aria-label="Type of content to check">
+      <div className="fr-seg fr-seg--fill glass-seg" role="group" aria-label="Type of content to check">
         {modes.map((candidate) => (
           <button
             key={candidate.id}
@@ -117,6 +118,7 @@ export function ScanForm({ busy, onSubmit }: Props) {
             id="scan-text"
             value={text}
             onChange={(event) => setText(event.target.value)}
+            className="glass-control"
             maxLength={MAX_TEXT_LENGTH}
             rows={8}
             aria-describedby="scan-text-hint"
@@ -135,6 +137,7 @@ export function ScanForm({ busy, onSubmit }: Props) {
               id="scan-urls"
               value={urls}
               onChange={(event) => setUrls(event.target.value)}
+              className="glass-control"
               rows={4}
               aria-describedby="scan-urls-hint"
             />
@@ -157,7 +160,7 @@ export function ScanForm({ busy, onSubmit }: Props) {
           <ConversationEditor messages={messages} onChange={setMessages} />
           <div className="fr-field">
             <label htmlFor="scan-sender">Your sender ID in this conversation</label>
-            <input id="scan-sender" className="fr-input" value={senderId} onChange={(event) => setSenderId(event.target.value)} maxLength={128} aria-describedby="scan-sender-hint" />
+            <input id="scan-sender" className="fr-input glass-control" value={senderId} onChange={(event) => setSenderId(event.target.value)} maxLength={128} aria-describedby="scan-sender-hint" />
             <span className="fr-hint" id="scan-sender-hint">Optional. Messages from this sender are not counted as warning signs.</span>
           </div>
         </>
@@ -175,9 +178,9 @@ export function ScanForm({ busy, onSubmit }: Props) {
       {localError && <p className="fr-banner fr-banner--unavailable" role="alert"><Icon name="coverage-unavailable" />{localError}</p>}
 
       <div className="scan-submit">
-        <button className="fr-btn fr-btn--primary fr-btn--block" type="submit" disabled={busy}>
+        <GlassButton variant="primary" className="glass-btn--block" type="submit" disabled={busy}>
           {busy ? "Checking…" : active.submit}
-        </button>
+        </GlassButton>
       </div>
     </form>
   );

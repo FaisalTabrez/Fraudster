@@ -5,7 +5,7 @@ import asyncio
 import httpx
 import pytest
 
-from services.gateway.app.clients.detectors import unavailable_result
+from services.gateway.app.clients.detectors import DetectorClients, unavailable_result
 from services.gateway.app.main import create_app
 from services.gateway.app.models import CoverageStatus, Evidence, ModuleResult, Severity, Verdict
 from services.gateway.app.settings import Settings
@@ -24,6 +24,17 @@ class UnavailableClients:
 
     async def url(self, _urls: list[str]) -> ModuleResult:
         return unavailable_result("url", "URL adapter not configured")
+
+
+class ReadinessClients(UnavailableClients):
+    def __init__(self, *, text: bool, url: bool) -> None:
+        self.checks = {
+            "text": {"ready": text, "status": "ready" if text else "unavailable", "service": "text"},
+            "url": {"ready": url, "status": "ready" if url else "unavailable", "service": "url"},
+        }
+
+    async def readiness(self) -> dict[str, dict[str, object]]:
+        return self.checks
 
 
 class PartialClients:
@@ -465,11 +476,65 @@ async def test_blank_top_level_text_is_not_an_applicable_check_when_url_is_suppl
 
 @pytest.mark.asyncio
 async def test_readiness_is_independent_from_liveness() -> None:
-    app = create_app(Settings(demo_mode=False))
+    app = create_app(Settings(demo_mode=False), detectors=ReadinessClients(text=False, url=True))
     assert (await request(app, "GET", "/health/live")).status_code == 200
     ready = await request(app, "GET", "/health/ready")
     assert ready.status_code == 503
-    assert ready.json()["ready"] is False
+    assert ready.json() == {
+        "status": "not_ready",
+        "ready": False,
+        "mode": "live",
+        "detectors": {
+            "text": {"ready": False, "status": "unavailable", "service": "text"},
+            "url": {"ready": True, "status": "ready", "service": "url"},
+        },
+        "reasons": ["text detector is not ready"],
+    }
+
+
+@pytest.mark.asyncio
+async def test_live_readiness_succeeds_when_required_detectors_are_ready() -> None:
+    app = create_app(Settings(demo_mode=False), detectors=ReadinessClients(text=True, url=True))
+    ready = await request(app, "GET", "/health/ready")
+    assert ready.status_code == 200
+    assert ready.json()["ready"] is True
+    assert ready.json()["reasons"] == []
+
+
+@pytest.mark.asyncio
+async def test_detector_readiness_probes_only_fixed_private_health_routes(monkeypatch: pytest.MonkeyPatch) -> None:
+    requested: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requested.append(str(request.url))
+        if request.url.host == "private-url":
+            return httpx.Response(200, json={"ready": True})
+        return httpx.Response(503, json={"ready": False, "detail": "provider detail is not relayed"})
+
+    real_async_client = httpx.AsyncClient
+
+    def client_factory(*args, **kwargs):
+        kwargs["transport"] = httpx.MockTransport(handler)
+        return real_async_client(*args, **kwargs)
+
+    monkeypatch.setattr("services.gateway.app.clients.detectors.httpx.AsyncClient", client_factory)
+    clients = DetectorClients(Settings(text_service_url="http://private-text", url_service_url="http://private-url"))
+
+    result = await clients.readiness()
+
+    assert set(requested) == {"http://private-text/health/ready", "http://private-url/health/ready"}
+    assert result == {
+        "text": {"ready": False, "status": "unavailable", "service": "text"},
+        "url": {"ready": True, "status": "ready", "service": "url"},
+    }
+
+
+@pytest.mark.asyncio
+async def test_fixture_readiness_does_not_probe_private_detectors() -> None:
+    app = create_app(Settings(demo_mode=True), detectors=UnavailableClients())
+    ready = await request(app, "GET", "/health/ready")
+    assert ready.status_code == 200
+    assert ready.json() == {"status": "ready", "ready": True, "mode": "fixture", "detectors": {}}
 
 
 @pytest.mark.asyncio

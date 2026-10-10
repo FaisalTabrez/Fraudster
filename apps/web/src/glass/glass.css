@@ -1,0 +1,248 @@
+/* ===========================================================================
+   Glass layer for the Fraudster brand kit.
+
+   Every colour here is a brand token (tokens.css) or a color-mix() of one. No new hex values.
+   Opt-in: nothing changes until an element carries .glass. Use it for shells, stat cards, tabs,
+   popovers and inputs. Do NOT use it for the verdict / action card, coverage banners or evidence:
+   those stay flat, solid and high contrast because people act on them (brand-guidelines.md:
+   "Borders, not shadows" and "verdict colours describe the message").
+
+   Token map
+     --surface            -> glass fill (translucent)           --line-strong -> hairline edge
+     --brand              -> ambient glow, rim shade, focus     --brand-tint  -> secondary glow
+     --ink / --ink-2 / --caption -> text, always read against the WORST case backdrop
+   =========================================================================== */
+
+:root {
+  /* Fill strength per elevation tier, as a percent of --surface. glass.contrast.test.ts parses
+     these, so raising transparency fails a test unless text still meets WCAG AA. */
+  --glass-1-alpha: 58%;      /* tier 1: subtle card */
+  --glass-2-alpha: 72%;      /* tier 2: interactive surface (tab, button, field) */
+  --glass-3-alpha: 86%;      /* tier 3: modal / popover */
+  --glass-glow-alpha: 22%;   /* strongest brand glow that may sit behind any glass */
+  --glass-solid-alpha: 88%;  /* brand-tinted primary glass button */
+  --glass-field-alpha: 78%;  /* text areas, inputs and segmented controls */
+
+  --glass-1-fill: color-mix(in srgb, var(--surface) var(--glass-1-alpha), transparent);
+  --glass-2-fill: color-mix(in srgb, var(--surface) var(--glass-2-alpha), transparent);
+  --glass-3-fill: color-mix(in srgb, var(--surface) var(--glass-3-alpha), transparent);
+
+  --glass-1-blur: blur(14px) saturate(140%);
+  --glass-2-blur: blur(20px) saturate(160%);
+  --glass-3-blur: blur(30px) saturate(180%);
+
+  /* Specular rim: bright where light hits (top-left), brand-shaded on the far edge. */
+  --glass-rim-hi: color-mix(in srgb, var(--surface) 92%, transparent);
+  --glass-rim-lo: color-mix(in srgb, var(--brand) 26%, transparent);
+  --glass-edge: color-mix(in srgb, var(--line-strong) 65%, transparent);
+  --glass-spec: color-mix(in srgb, var(--surface) 60%, transparent);
+
+  --glass-1-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 8%, transparent),
+                    0 10px 28px -14px color-mix(in srgb, var(--brand) 30%, transparent);
+  --glass-2-shadow: 0 2px 4px color-mix(in srgb, var(--ink) 8%, transparent),
+                    0 16px 36px -14px color-mix(in srgb, var(--brand) 38%, transparent);
+  --glass-3-shadow: 0 4px 8px color-mix(in srgb, var(--ink) 10%, transparent),
+                    0 28px 64px -18px color-mix(in srgb, var(--brand) 46%, transparent);
+
+  --glass-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---- Ambient stage: soft brand light behind the glass so the blur has something to frost ---- */
+/* overflow: clip keeps position: sticky working inside the stage; hidden is the older-browser fallback. */
+.glass-stage { position: relative; isolation: isolate; overflow: hidden; overflow: clip; background: var(--ground); }
+.glass-stage::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 36% at 16% 18%, color-mix(in srgb, var(--brand) var(--glass-glow-alpha), transparent), transparent 70%),
+    radial-gradient(36% 40% at 86% 28%, color-mix(in srgb, var(--brand-tint) 95%, transparent), transparent 70%),
+    radial-gradient(46% 40% at 58% 96%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 70%);
+  filter: blur(8px);
+}
+
+/* Orbs: a few firm-edged discs of brand light. Glass frosts visibly where it crosses an edge,
+   which is what makes the blur readable. Peak strength stays at --glass-glow-alpha. */
+.glass-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 190px at 12% 26%, color-mix(in srgb, var(--brand) var(--glass-glow-alpha), transparent) 0 94%, transparent 100%),
+    radial-gradient(circle 150px at 74% 14%, var(--brand-tint) 0 94%, transparent 100%),
+    radial-gradient(circle 220px at 88% 62%, color-mix(in srgb, var(--brand) 16%, transparent) 0 94%, transparent 100%),
+    radial-gradient(circle 120px at 30% 72%, var(--brand-tint) 0 94%, transparent 100%);
+}
+
+/* ---- The glass surface ---- */
+.glass {
+  --mx: 30%;
+  --my: 0%;
+  --spec-opacity: 0.5;
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--radius-16);
+  border: 1px solid var(--glass-edge);
+  background: var(--glass-fill, var(--glass-1-fill));
+  -webkit-backdrop-filter: var(--glass-blur, var(--glass-1-blur));
+  backdrop-filter: var(--glass-blur, var(--glass-1-blur));
+  box-shadow: var(--glass-shadow, var(--glass-1-shadow));
+  color: var(--ink);
+  transition: transform 0.3s var(--glass-ease), box-shadow 0.3s var(--glass-ease), background-color 0.3s var(--glass-ease);
+}
+.glass--1 { --glass-fill: var(--glass-1-fill); --glass-blur: var(--glass-1-blur); --glass-shadow: var(--glass-1-shadow); }
+.glass--2 { --glass-fill: var(--glass-2-fill); --glass-blur: var(--glass-2-blur); --glass-shadow: var(--glass-2-shadow); }
+.glass--3 { --glass-fill: var(--glass-3-fill); --glass-blur: var(--glass-3-blur); --glass-shadow: var(--glass-3-shadow); }
+
+/* Rim: a 1px gradient border drawn with a mask, so it never changes layout. */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, var(--glass-rim-hi), transparent 38%, transparent 62%, var(--glass-rim-lo));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+/* Specular highlight: follows the pointer via --mx / --my (set by useSpecular). It sits under the
+   content (z-index 0 vs content 1) and is a light wash, so it can only raise text contrast. */
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(220px circle at var(--mx) var(--my), var(--glass-spec), transparent 70%);
+  opacity: var(--spec-opacity);
+  transition: opacity 0.25s var(--glass-ease);
+}
+.glass > * { position: relative; z-index: 1; }
+
+/* Interactive states (tier 2 by convention) */
+.glass[data-interactive]:hover { --spec-opacity: 0.95; transform: translateY(-1px); }
+.glass[data-interactive]:active { --spec-opacity: 0.35; transform: translateY(0); box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 10%, transparent); }
+.glass:focus-visible, .glass :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.glass[aria-disabled="true"], .glass:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* ---- Stat card (tier 1) ---- */
+.glass-stat { padding: 24px; display: flex; flex-direction: column; gap: 6px; }
+.glass-stat__label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--eyebrow); }
+.glass-stat__value { font-size: 36px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+.glass-stat__hint { font-size: 14px; color: var(--ink-2); }
+
+/* ---- Button (tier 2). Default is glass with brand text; --primary is brand-tinted glass. ---- */
+.glass-btn { min-height: var(--control-min); padding: 0 22px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: inherit; font-weight: 600; color: var(--brand); cursor: pointer; border-radius: var(--radius-12); }
+.glass-btn--primary {
+  --glass-fill: color-mix(in srgb, var(--brand) var(--glass-solid-alpha), transparent);
+  border-color: color-mix(in srgb, var(--brand) 60%, var(--surface));
+  color: var(--on-brand);
+}
+.glass-btn--primary::after { background: radial-gradient(180px circle at var(--mx) var(--my), color-mix(in srgb, var(--surface) 28%, transparent), transparent 70%); }
+.glass-btn--primary:focus-visible { outline-color: var(--ink); }
+
+/* ---- Tabs (tier 1 track, tier 2 selected pill) ---- */
+.glass-tabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: var(--radius-14); }
+.glass-tab { min-height: var(--control-segment); padding: 0 18px; border: 0; border-radius: var(--radius-10); background: transparent; font: inherit; font-weight: 500; color: var(--ink-2); cursor: pointer; transition: background-color 0.2s, color 0.2s, box-shadow 0.2s; }
+.glass-tab:hover { background: color-mix(in srgb, var(--surface) 55%, transparent); color: var(--ink); }
+.glass-tab[aria-selected="true"] { font-weight: 600; color: var(--brand); background: var(--glass-3-fill); box-shadow: var(--shadow-segment), inset 0 0 0 1px var(--glass-edge); }
+.glass-tab:active { background: color-mix(in srgb, var(--surface) 80%, transparent); }
+
+/* ---- Native controls on glass: a textarea or input styled directly (no wrapper) ---- */
+.glass-control, .fr-field .glass-control {
+  background: color-mix(in srgb, var(--surface) var(--glass-field-alpha), transparent);
+  -webkit-backdrop-filter: var(--glass-2-blur);
+  backdrop-filter: var(--glass-2-blur);
+  border: 1px solid var(--line-control);
+  border-radius: var(--radius-12);
+  box-shadow: inset 0 1px 0 var(--glass-rim-hi), 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--ink);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.glass-control::placeholder { color: var(--caption); }
+.glass-control:hover { border-color: var(--line-strong); }
+.glass-control:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-color: var(--brand); }
+.glass-control[aria-invalid="true"] { border-color: var(--scam-fg); }
+
+/* ---- Segmented control on glass: tier 1 track, tier 3 selected segment ---- */
+.fr-seg.glass-seg {
+  background: var(--glass-1-fill);
+  -webkit-backdrop-filter: var(--glass-1-blur);
+  backdrop-filter: var(--glass-1-blur);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-1-shadow);
+}
+.glass-seg button { transition: background-color 0.2s, color 0.2s, box-shadow 0.2s; }
+.glass-seg button:hover { background: color-mix(in srgb, var(--surface) 55%, transparent); color: var(--ink); }
+.glass-seg button[aria-pressed="true"] { background: var(--glass-3-fill); color: var(--brand); box-shadow: var(--shadow-segment), inset 0 0 0 1px var(--glass-edge); }
+
+.glass-btn--block { width: 100%; }
+
+/* ---- Field (tier 2) ---- */
+.glass-field { display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 600; color: var(--ink); }
+.glass-field__control { --glass-fill: color-mix(in srgb, var(--surface) var(--glass-field-alpha), transparent); display: flex; border-radius: var(--radius-12); border-color: var(--line-control); }
+.glass-field__control input, .glass-field__control textarea { flex: 1; min-width: 0; min-height: var(--control-md); padding: 0 16px; border: 0; background: transparent; font: inherit; font-weight: 400; font-size: 16px; color: var(--ink); outline: none; }
+.glass-field__control textarea { padding: 14px 16px; min-height: 96px; resize: vertical; }
+.glass-field__control input::placeholder, .glass-field__control textarea::placeholder { color: var(--caption); }
+.glass-field__control:hover { --spec-opacity: 0.8; border-color: var(--line-strong); }
+.glass-field__control:focus-within { border-color: var(--brand); box-shadow: 0 0 0 2px var(--brand), var(--glass-2-shadow); }
+.glass-field__control:has([aria-invalid="true"]) { border-color: var(--scam-fg); }
+.glass-field__hint { font-size: 13px; font-weight: 400; color: var(--caption); }
+.glass-field__error { font-size: 13px; font-weight: 600; color: var(--scam-fg); }
+
+/* ===========================================================================
+   Fallbacks: every one of these swaps translucency for the plain solid token, so contrast
+   can only go up. The layout, rim and spacing are unchanged.
+   =========================================================================== */
+
+/* 1. No backdrop-filter (older browsers, some embedded webviews, data-saver modes) */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { --glass-fill: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .glass--1, .glass--2, .glass--3 { --glass-fill: var(--surface); }
+  .glass-btn--primary { --glass-fill: var(--brand); }
+  .glass-field__control { --glass-fill: var(--surface); }
+  .glass-tab[aria-selected="true"], .glass-seg button[aria-pressed="true"] { background: var(--surface); }
+  .glass-control, .fr-field .glass-control, .fr-seg.glass-seg { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  /* Sticky mobile submit bar (styles.css) is declared later, so it needs the extra class to win. */
+  .glass-stage .scan-submit { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+/* 2. No color-mix(): use the solid tokens. The ambient mesh falls back to a flat brand tint. */
+@supports not (background: color-mix(in srgb, red 50%, transparent)) {
+  :root { --glass-1-fill: var(--surface); --glass-2-fill: var(--surface); --glass-3-fill: var(--surface); --glass-edge: var(--line-strong); --glass-rim-hi: var(--surface); --glass-rim-lo: var(--line-strong); --glass-spec: var(--surface); --glass-1-shadow: none; --glass-2-shadow: none; --glass-3-shadow: none; }
+  .glass-stage::before { background: radial-gradient(60% 50% at 20% 20%, var(--brand-tint), transparent 70%); }
+  .glass-stage::after { background: radial-gradient(circle 160px at 14% 28%, var(--brand-tint) 0 94%, transparent 100%); }
+  .glass-btn--primary { --glass-fill: var(--brand); }
+  .glass-control, .fr-field .glass-control, .fr-seg.glass-seg { background: var(--surface); }
+}
+
+/* 3. User asks for less transparency or more contrast */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glass, .glass--1, .glass--2, .glass--3 { --glass-fill: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; border-color: var(--line-strong); }
+  .glass-btn--primary { --glass-fill: var(--brand); }
+  .glass::after { display: none; }
+  .glass-control, .fr-field .glass-control, .fr-seg.glass-seg { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  /* Sticky mobile submit bar (styles.css) is declared later, so it needs the extra class to win. */
+  .glass-stage .scan-submit { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+/* 4. Windows high contrast / forced colours: system colours, no effects */
+@media (forced-colors: active) {
+  .glass { background: Canvas; border-color: CanvasText; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .glass::before, .glass::after, .glass-stage::before, .glass-stage::after { display: none; }
+  .glass-tab[aria-selected="true"] { outline: 2px solid Highlight; }
+  .glass-stage .scan-submit { background: Canvas; border-top-color: CanvasText; -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass, .glass::after, .glass-tab { transition: none; }
+  .glass[data-interactive]:hover { transform: none; }
+}

@@ -6,7 +6,8 @@ web origin (``--base-url http://127.0.0.1:4173/api``). It makes no outbound requ
 than to the given base URL and needs no provider key.
 
 ``--expect fixture``      the gateway runs with DEMO_MODE=true
-``--expect unavailable``  DEMO_MODE=false and no detector service is reachable
+``--expect partial``      DEMO_MODE=false with URL complete and text unavailable
+``--expect unavailable``  DEMO_MODE=false; submit text only and require unavailable/unknown
 ``--expect live-no-key``  DEMO_MODE=false with the real services running but no text provider key,
                           which is the default Docker stack: text is unavailable, URL checks may complete
 ``--expect any``          accept any of these, but check every invariant that must hold in all of them
@@ -83,7 +84,11 @@ def run(base: str, expect: str) -> tuple[Checks, dict[str, Any]]:
 
     url = "http://192.0.2.10/verify"
     status, analysis = request_json(f"{base}/v1/analyze", {
-        "text": "Urgent: send your OTP to verify your account.", "urls": [url], "messages": [], "source": "manual"})
+        "text": "Urgent: send your OTP to verify your account.",
+        "urls": [] if expect == "unavailable" else [url],
+        "messages": [],
+        "source": "manual",
+    })
     checks.check(status == 200 and isinstance(analysis, dict), "analyze must answer 200 with a JSON object")
     analysis = analysis if isinstance(analysis, dict) else {}
     check_contract(checks, "manual request", analysis)
@@ -96,6 +101,14 @@ def run(base: str, expect: str) -> tuple[Checks, dict[str, Any]]:
         checks.check(analysis.get("status") == "unavailable" and analysis.get("verdict") == "unknown",
                      "default mode without detectors must be unavailable/unknown")
         checks.check(ready_status == 503, "default mode without detectors must not report ready")
+
+    if expect == "partial":
+        checks.check(analysis.get("fixture_generated") is False, "live partial mode must not return fixture data")
+        checks.check(analysis.get("status") == "partial", "live mode must preserve a partial result")
+        checks.check(analysis.get("coverage", {}).get("url") == "complete",
+                     "partial mode must preserve completed URL coverage")
+        checks.check(analysis.get("coverage", {}).get("text") == "unavailable",
+                     "partial mode must expose unavailable text coverage")
 
     if expect == "live-no-key":
         checks.check(analysis.get("fixture_generated") is False, "live mode must not return fixture data")
@@ -151,7 +164,11 @@ def run(base: str, expect: str) -> tuple[Checks, dict[str, Any]]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--base-url", default="http://127.0.0.1:4173/api")
-    parser.add_argument("--expect", choices=("fixture", "unavailable", "live-no-key", "any"), default="any")
+    parser.add_argument(
+        "--expect",
+        choices=("fixture", "partial", "unavailable", "live-no-key", "any"),
+        default="any",
+    )
     args = parser.parse_args()
 
     try:

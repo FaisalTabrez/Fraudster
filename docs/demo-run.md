@@ -6,7 +6,7 @@ What was actually run, on what, and what came out. Nothing here is a model-perfo
 
 - 10 October 2026, Windows, Docker Engine 29.8.1 and Docker Compose 5.5.1. No `.env` file and no `TEXT_API_KEY` were used.
 - The Compose images used their pinned runtimes: Python 3.11 for gateway/text, Python 3.13 for URL, and Node 24 for the production web build. Host checks used Python 3.12.10; the focused URL suite was also checked with Python 3.13.
-- Commit base: `d455e60` (`main` after PR #28), merged into the PRI-01/PRI-02 branch, plus the release-gate fixes at `a648d99`.
+- Integration base: release-readiness head `93958af` (which includes `main` after PR #30), merged into the PRI-01/PRI-02 branch after the release-gate fixes at `a648d99` and this run record at `9a7ecf6`.
 
 ## Human-only work still required
 
@@ -90,11 +90,11 @@ This is what the default Compose stack does without a key: text is honestly unav
 
 ```text
 python -m pytest -q services/gateway/tests services/text/tests services/ocr/tests tests/integration
-  165 passed, 3 skipped in 12.91s
+  174 passed, 3 skipped in 17.46s
 python -m pytest -q services/url/tests tests/integration
-  123 passed in 18.26s        (Python 3.13; includes the tests that drive the real URL service)
+  129 passed in 23.71s        (Python 3.13; includes the tests that drive the real URL service)
 cd apps/web && npm run typecheck && npm test && npm run build
-  typecheck passed; 9 files / 150 tests passed; production build passed
+  typecheck passed; 11 files / 182 tests passed; production build passed
 python evaluation/validate_fixtures.py                              exit 0 (sets valid, not frozen)
 python evaluation/run_evaluation.py --in-process --set development --check-expectations
   30/30 scored, 0 skipped, 0 errors, 0 contract violations, 0 unmet expectations   exit 0
@@ -102,5 +102,5 @@ python evaluation/run_evaluation.py --in-process --set development --check-expec
 
 ## Findings from the run
 
-- **`/health/ready` still reports the old scaffold reason in live mode.** The URL service was ready and the text service was honestly `not_configured`, so HTTP 503 was correct, but the gateway reason does not describe those real adapter states. The Compose health checks use `/health/live`, so startup is not affected. Readiness correction is tracked separately from PRI-01/PRI-02.
+- **`/health/ready` now reports per-detector live state.** It probes only the private detectors' fixed readiness paths, never sends submitted content, and preserves the honest HTTP 503 when the text provider is not configured.
 - The synthetic fixture sets are useful for contracts, degraded-mode behavior and demo repeatability only. The evaluator now makes synthetic provenance an unconditional reason that a run is not reportable as detection performance, even if every operational gate later passes.

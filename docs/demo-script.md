@@ -10,8 +10,8 @@ Start from a clean fixture-mode Compose build for deterministic UI narration. Ke
 2. Submit a no-link message asking the recipient to send an OTP under time pressure. Explain the quoted evidence and safe recommendation.
 3. Submit `http://192.0.2.10/verify`. Explain the observed IP-host fixture feature and that URL parsing did not open the link.
 4. Enter two messages from one supplied sender: an urgent suspension warning and a request for an OTP. Show both exact message IDs. Change the second sender and show that the rule no longer joins them.
-5. Restart with `DEMO_MODE=false`. Show that the interface still loads, the text check is unavailable without a provider key, verdict and severity are unknown when no applicable check can run, and no null score becomes zero. The URL service is a real adapter, so a link on its own still gets a result; stop the URL service as well to show both checks unavailable.
-6. If and only if P1 passed its checks, show editable OCR text or locally decoded QR content feeding the same analysis form. Do not open the decoded URL.
+5. Restart with `DEMO_MODE=false`. Submit text plus the inert documentation URL and show a partial result: URL completed while unconfigured text is unavailable. Then submit text only and show unavailable/unknown. No null score becomes zero. If demonstrating a stopped URL service too, call that extra state out explicitly.
+6. Show local QR decoding feeding reviewed text or an inert URL into the same analysis route. Show screenshot OCR only when the optional CPU assets have passed their documented verification. Do not open decoded content.
 
 ## Closing statement
 
@@ -19,4 +19,4 @@ State which adapters are live, fixture-only, or unavailable; give the measured s
 
 ## Recorded run
 
-The API calls behind steps 1 to 5 are scripted in `tests/e2e/demo_walkthrough.py`. `docs/demo-run.md` records what a real run produced, and what was not run (the browser steps, step 6, Docker, and the three-minute timing).
+The API calls behind steps 1 to 5 are scripted in `tests/e2e/demo_walkthrough.py`. The browser contract is also exercised by `tests/e2e/core_smoke.mjs`. `docs/demo-run.md` records the completed automated and headed-browser evidence and identifies the remaining human-timed narration and label-review work.

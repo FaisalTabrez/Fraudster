@@ -103,10 +103,12 @@ $env:PYTHONPATH = (Get-Location).Path
 .\.venv\Scripts\python.exe evaluation\run_evaluation.py --in-process --set development --check-expectations
 ```
 
-Against a running stack (Docker or native), pick the expectation that matches how it was started: `fixture` for `DEMO_MODE=true`, `live-no-key` for the default stack, `unavailable` when no detector service is reachable:
+Against a running stack (Docker or native), pick the expectation that matches how it was started: `fixture` for `DEMO_MODE=true`, `partial` for the default Compose stack (URL complete, unconfigured text unavailable), `live-no-key` for a looser live service check, or `unavailable` for a text-only request when text cannot run:
 
 ```powershell
 py -3 scripts\smoke.py --base-url http://127.0.0.1:4173/api --expect fixture
+py -3 scripts\smoke.py --base-url http://127.0.0.1:4173/api --expect partial
+py -3 scripts\smoke.py --base-url http://127.0.0.1:4173/api --expect unavailable
 py -3 tests\e2e\demo_walkthrough.py --base-url http://127.0.0.1:4173/api --mode fixture
 py -3 evaluation\run_evaluation.py --base-url http://127.0.0.1:4173/api --set development
 ```
@@ -114,6 +116,8 @@ py -3 evaluation\run_evaluation.py --base-url http://127.0.0.1:4173/api --set de
 The integration tests start real native processes and run the smoke script against them, so a clean checkout is checked end to end with no key, no model download and no network. `docs/demo-run.md` records an actual run.
 
 The evaluation sets are synthetic. The development and holdout sets are drafts until two teammates have reviewed the labels and the sets are frozen; see `docs/evaluation.md`. Nothing here is a benchmark or production-readiness claim.
+
+The partial check uses text plus an inert documentation-range URL. The unavailable check submits text only. Neither command opens the URL.
 
 ## Environment variables
 
