@@ -46,7 +46,7 @@ export function IngestionPanel({ busy, onSubmit }: Props) {
     catch (failure) { reviewError = failure instanceof Error ? failure.message : "Unsupported content."; }
   }
 
-  return <section className="ingestion-status" aria-labelledby="ingestion-heading">
+  return <section className="fr-card ingestion-status" aria-labelledby="ingestion-heading">
     <h2 id="ingestion-heading">Screenshot and QR ingestion</h2>
     <p>Review content before analysis. QR images stay in this browser; screenshots are sent to optional OCR.
       Links are never opened. Payment recipients are not verified.</p>
@@ -80,7 +80,7 @@ export function IngestionPanel({ busy, onSubmit }: Props) {
         <span className="field-hint">{review.length.toLocaleString()} / 10,000 characters. Only reviewed content is analyzed.</span>
       </label>
       {reviewError && <p role="alert" className="form-error">{reviewError}</p>}
-      <button type="button" className="primary-button" disabled={busy || working || !!reviewError}
+      <button type="button" className="fr-btn fr-btn--primary fr-btn--block" disabled={busy || working || !!reviewError}
         onClick={() => { void onSubmit(reviewRequest(review, mode)); }}>
         Analyze reviewed content
       </button>

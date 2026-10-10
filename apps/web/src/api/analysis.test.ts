@@ -108,6 +108,9 @@ describe("analyze response validation", () => {
 
   const malformed: Array<[string, unknown]> = [
     ["a null module entry", withChange((copy) => { copy.module_results = { text: null }; })],
+    ["missing versions", withChange((copy) => { delete copy.versions; })],
+    ["null versions", withChange((copy) => { copy.versions = null; })],
+    ["a non-string version", withChange((copy) => { copy.versions = { gateway: 1 }; })],
     ["a string module entry", withChange((copy) => { copy.module_results = { text: "oops" }; })],
     ["an array module entry", withChange((copy) => { copy.module_results = { text: [] }; })],
     ["a module without fixture_generated", withModule({ fixture_generated: undefined })],

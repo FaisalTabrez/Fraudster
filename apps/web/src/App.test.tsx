@@ -20,6 +20,8 @@ const conversationResponse: AnalysisResponse = {
   ],
 };
 
+const actionHeading = "Pause. Don't reply, pay, or share codes yet.";
+
 afterEach(() => {
   vi.unstubAllGlobals();
 });
@@ -32,12 +34,13 @@ describe("App", () => {
     vi.stubGlobal("fetch", fetchMock);
     render(<App />);
 
+    fireEvent.click(screen.getByRole("button", { name: "Conversation" }));
     fireEvent.click(screen.getByRole("button", { name: "Add supplied message" }));
     fireEvent.change(screen.getByLabelText("Sender ID"), { target: { value: "sender-a" } });
     fireEvent.change(screen.getByLabelText("Message"), { target: { value: "Act now, this is urgent." } });
-    fireEvent.click(screen.getByRole("button", { name: "Analyze supplied content" }));
+    fireEvent.click(screen.getByRole("button", { name: "Check this conversation" }));
 
-    expect(await screen.findByRole("heading", { level: 2, name: "Potential scam" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 2, name: actionHeading })).toBeInTheDocument();
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("/api/v1/analyze");
     expect(JSON.parse(init.body as string)).toEqual({
@@ -62,6 +65,7 @@ describe("App", () => {
     vi.stubGlobal("fetch", fetchMock);
     render(<App />);
 
+    fireEvent.click(screen.getByRole("button", { name: "Conversation" }));
     const add = () => fireEvent.click(screen.getByRole("button", { name: "Add supplied message" }));
     add();
     add();
@@ -71,10 +75,10 @@ describe("App", () => {
     fireEvent.change(texts[0], { target: { value: "Act now, this is urgent." } });
     fireEvent.change(senders[1], { target: { value: " sender-a " } });
     fireEvent.change(texts[1], { target: { value: " Send your OTP to verify. " } });
-    fireEvent.change(screen.getByLabelText("Your sender ID in the supplied history"), { target: { value: " me " } });
-    fireEvent.click(screen.getByRole("button", { name: "Analyze supplied content" }));
+    fireEvent.change(screen.getByLabelText("Your sender ID in this conversation"), { target: { value: " me " } });
+    fireEvent.click(screen.getByRole("button", { name: "Check this conversation" }));
 
-    await screen.findByRole("heading", { level: 2, name: "Unable to assess" });
+    await screen.findByRole("heading", { level: 2, name: /couldn't assess this/ });
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(JSON.parse(init.body as string)).toEqual({
       urls: [],
@@ -87,14 +91,34 @@ describe("App", () => {
     });
   });
 
+  it("checks a pasted message and shows the action card first", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(fixtureScamResponse), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText("Paste the message exactly as received"), { target: { value: "Send your OTP" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check this message" }));
+
+    expect(await screen.findByRole("heading", { level: 2, name: actionHeading })).toHaveFocus();
+    expect(screen.getByText("Demo data")).toBeInTheDocument();
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({ text: "Send your OTP", urls: [], messages: [], source: "manual" });
+  });
+
   it("shows a plain error and no result when the service cannot be reached", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
     render(<App />);
 
-    fireEvent.change(screen.getByLabelText("Message text"), { target: { value: "Synthetic message" } });
-    fireEvent.click(screen.getByRole("button", { name: "Analyze supplied content" }));
+    fireEvent.change(screen.getByLabelText("Paste the message exactly as received"), { target: { value: "Synthetic message" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check this message" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Could not reach the analysis service. Nothing was saved.");
     expect(screen.getByText("No analysis yet")).toBeInTheDocument();
+  });
+
+  it("identifies the product with the brand mark and wordmark", () => {
+    const { container } = render(<App />);
+    expect(container.querySelector(".fr-brand")).toHaveTextContent("Fraudster");
+    expect(container.querySelector(".fr-brand svg")).toHaveAttribute("aria-hidden", "true");
   });
 });

@@ -1,6 +1,6 @@
 /* Fraudster — generated from tokens.json */
-/* Fonts are not bundled. Load Public Sans and IBM Plex Mono (both SIL OFL) from their upstream
-   releases; until then the --font-sans and --font-mono stacks fall back to system fonts. */
+/* Fonts: @fontsource-variable/public-sans and @fontsource/ibm-plex-mono (SIL OFL), imported in main.tsx and
+   served from this origin. Copied from the brand kit (brand/tokens.css); keep the two in sync. */
 :root{
   --ground: #f4f2ec;
   --surface: #ffffff;
@@ -79,7 +79,7 @@
   --control-min: 44px;
   --control-md: 48px;
   --control-lg: 52px;
-  --font-sans: "Public Sans", system-ui, sans-serif;
+  --font-sans: "Public Sans Variable", "Public Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 .display{font-family:var(--font-sans);font-size:44px;line-height:1.1;font-weight:700;letter-spacing:-0.02em}
