@@ -30,7 +30,7 @@ All scenarios are **synthetic and authored**, marked `provenance: synthetic_auth
 
 The ticket asks for "six conversations" and "five failures". They are counted across the two sets, and `validate_fixtures.py` enforces at least six and five in total. If the team reads the ticket as per set, add scenarios to the holdout (it has two conversations and two failures).
 
-Each scenario carries `group` (the template or thread it belongs to), `category`, `expected_verdict`, `support` (why the label is right), `ambiguous`, and `reviewers`. The expected verdict is what a careful human reader would label from the supplied text alone. It is never copied from a detector's output. The `label_policy` in each file's metadata spells this out.
+Each scenario carries `split` (the file it lives in), `group` (the template or thread it belongs to), `category`, `case_kind` (`detection`, `conversation` or `failure`), `provenance`, `expected_verdict`, `support` (why the label is right), `ambiguous`, and `reviewers`. Failure scenarios also state `expected_http_status` and, when it is 200, `expected_status` (`complete`, `partial` or `unavailable`) at the top level, plus an optional `expected` block for extra checks (`severity`, `coverage`, `evidence_required`) and a `condition` that sets up the degraded mode. The expected verdict is what a careful human reader would label from the supplied text alone. It is never copied from a detector's output. The `label_policy` in each file's metadata spells this out. `split`, `case_kind` and `provenance` are also what the release-readiness dataset gate counts.
 
 ### Failure scenarios
 
@@ -61,9 +61,9 @@ Run it with `python evaluation/validate_fixtures.py`. CI runs it on every pull r
 
 This is the human step the drafts are waiting for.
 
-1. Two teammates, neither of whom wrote the label, each read every scenario and add their handle to its `reviewers` list. They record disagreement in a pull request comment, not by editing a label silently.
-2. The five scenarios flagged `ambiguous` need a discussion and a `resolution` note: `DEV-05` (account-change notice), `DEV-11` (loyalty reminder), `HO-08` (vague exclusive offer), `HO-13` (wrong-number opener), `HO-16` (punycode host). Reviewers may also flag others.
-3. Once every scenario has two reviewers, run `python evaluation/validate_fixtures.py --freeze development` (and `holdout` by H24). It refuses unless both conditions hold, then writes `evaluation/fixtures/FREEZE.json` with the content hash.
+1. Generate the review sheets. Each reviewer should label **blind** first: `python evaluation/validate_fixtures.py --review-sheet evaluation/results/label-review-blind.md --blind` hides the proposed labels, rationales and ambiguity flags, so they label from the text alone. Then compare with the fixture labels using the full sheet (`--review-sheet evaluation/results/label-review.md`), which lists the proposal, the rationale and agree/disagree boxes. CI also publishes both sheets as a build artifact, so reviewers do not need a local Python setup. Both sheets are generated, ignored by git, and must not be edited by hand.
+2. Two teammates, neither of whom wrote the label, each review every scenario and then add their handle to its `reviewers` list in the fixture. They record disagreement in a pull request comment, not by editing a label silently. The five scenarios flagged `ambiguous` need a discussion and a `resolution` note: `DEV-05` (account-change notice), `DEV-11` (loyalty reminder), `HO-08` (vague exclusive offer), `HO-13` (wrong-number opener), `HO-16` (punycode host). Reviewers may also flag others.
+3. Once every scenario has two reviewers and every difference is resolved, run `python evaluation/validate_fixtures.py --freeze development` (and `holdout` by H24). It refuses unless both conditions hold, then writes `evaluation/fixtures/FREEZE.json` with the content hash.
 4. Set `metadata.freeze.status` to `frozen` and `frozen_at` to the date in the file, and rerun the validator. From then on, any edit to a frozen set changes its hash and fails the check.
 
 Do not tune on the holdout. `run_evaluation.py --set holdout` refuses to run without `--final-run`, and the report records the fixture hash and freeze status so an unfrozen or edited holdout is visible.
@@ -104,5 +104,6 @@ For a live evaluation also record the model, prompt and policy versions (the rep
 
 - Fifty synthetic scenarios cannot support a claim about real-world accuracy. They check behavior, coverage and failure handling.
 - Labels reflect one drafter's judgement until two reviewers have signed off.
+- **The sets were not authored blind to the detectors.** They were drafted after reading the fixture-mode text and conversation rules and the gateway's evidence policy, and the failure and sender-separation scenarios in particular were written to exercise them. That is fine for contract and degraded-mode checks. It means the holdout is not an independent sample: before any live measurement is reported, reviewers should add or swap in scenarios written without sight of the detectors, and the report should say so. The holdout has been run in-process only as a contract check and its verdict agreement was not inspected.
 - The text detector needs a provider key. Without one, a live run reports text as unavailable, so a live text evaluation cannot be produced in CI.
 - Latency from `--in-process` is a function call, not a network request.

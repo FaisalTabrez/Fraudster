@@ -42,6 +42,14 @@ jobs:
       - run: python -m pytest -q services/gateway/tests services/text/tests services/ocr/tests tests/integration
       # Structure rules for the 30-case development and 20-case holdout sets.
       - run: python evaluation/validate_fixtures.py
+      # The synthetic scenarios as review sheets, so the two reviewers can label them without a local setup.
+      - run: |
+          python evaluation/validate_fixtures.py --review-sheet review-sheets/label-review.md
+          python evaluation/validate_fixtures.py --review-sheet review-sheets/label-review-blind.md --blind
+      - uses: actions/upload-artifact@v4
+        with:
+          name: label-review-sheets
+          path: review-sheets/
       # Contract and degraded-mode run of the development set. It is not a detection result and
       # never runs the holdout. Fails on contract violations or unmet failure-scenario expectations.
       - run: python evaluation/run_evaluation.py --in-process --set development --check-expectations --output /tmp/development-contract-run.json

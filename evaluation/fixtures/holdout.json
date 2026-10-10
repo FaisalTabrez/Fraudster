@@ -16,8 +16,10 @@
   "scenarios": [
     {
       "id": "HO-01",
+      "split": "holdout",
       "group": "tpl-flight",
       "category": "benign_notification",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -32,8 +34,10 @@
     },
     {
       "id": "HO-02",
+      "split": "holdout",
       "group": "tpl-statement",
       "category": "benign_notification",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -48,8 +52,10 @@
     },
     {
       "id": "HO-03",
+      "split": "holdout",
       "group": "tpl-library",
       "category": "benign_notification",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -64,8 +70,10 @@
     },
     {
       "id": "HO-04",
+      "split": "holdout",
       "group": "tpl-offer-letter",
       "category": "job",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -80,8 +88,10 @@
     },
     {
       "id": "HO-05",
+      "split": "holdout",
       "group": "tpl-url-docs",
       "category": "benign_notification",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -97,8 +107,10 @@
     },
     {
       "id": "HO-06",
+      "split": "holdout",
       "group": "tpl-flash",
       "category": "promotion",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "spam",
       "ambiguous": false,
@@ -113,8 +125,10 @@
     },
     {
       "id": "HO-07",
+      "split": "holdout",
       "group": "tpl-gym",
       "category": "promotion",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "spam",
       "ambiguous": false,
@@ -129,8 +143,10 @@
     },
     {
       "id": "HO-08",
+      "split": "holdout",
       "group": "tpl-vip",
       "category": "promotion",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "spam",
       "ambiguous": true,
@@ -145,8 +161,10 @@
     },
     {
       "id": "HO-09",
+      "split": "holdout",
       "group": "tpl-locked",
       "category": "credential_scam",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -161,8 +179,10 @@
     },
     {
       "id": "HO-10",
+      "split": "holdout",
       "group": "tpl-cvv",
       "category": "credential_scam",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -177,8 +197,10 @@
     },
     {
       "id": "HO-11",
+      "split": "holdout",
       "group": "tpl-grant",
       "category": "fake_offer",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -193,8 +215,10 @@
     },
     {
       "id": "HO-12",
+      "split": "holdout",
       "group": "tpl-crypto",
       "category": "payment_pressure",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -209,8 +233,10 @@
     },
     {
       "id": "HO-13",
+      "split": "holdout",
       "group": "tpl-wrong-number",
       "category": "payment_pressure",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": true,
@@ -225,8 +251,10 @@
     },
     {
       "id": "HO-14",
+      "split": "holdout",
       "group": "tpl-utility",
       "category": "payment_pressure",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -241,8 +269,10 @@
     },
     {
       "id": "HO-15",
+      "split": "holdout",
       "group": "tpl-data-entry",
       "category": "job",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -257,8 +287,10 @@
     },
     {
       "id": "HO-16",
+      "split": "holdout",
       "group": "tpl-url-punycode",
       "category": "credential_scam",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": true,
@@ -274,8 +306,10 @@
     },
     {
       "id": "HO-17",
+      "split": "holdout",
       "group": "thr-marketplace",
       "category": "conversation",
+      "case_kind": "conversation",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -306,8 +340,10 @@
     },
     {
       "id": "HO-18",
+      "split": "holdout",
       "group": "thr-protected",
       "category": "conversation",
+      "case_kind": "conversation",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -333,10 +369,13 @@
     },
     {
       "id": "HO-19",
+      "split": "holdout",
       "group": "fail-malformed",
       "category": "failure",
+      "case_kind": "failure",
       "provenance": "synthetic_authored",
       "expected_verdict": "unknown",
+      "expected_http_status": 422,
       "ambiguous": false,
       "input": {
         "text": "   ",
@@ -345,17 +384,18 @@
         "source": "manual"
       },
       "support": "Blank-only input is not a meaningful request and must be rejected, not analysed",
-      "reviewers": [],
-      "expected": {
-        "http_status": 422
-      }
+      "reviewers": []
     },
     {
       "id": "HO-20",
+      "split": "holdout",
       "group": "fail-deadline",
       "category": "failure",
+      "case_kind": "failure",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
+      "expected_http_status": 200,
+      "expected_status": "partial",
       "ambiguous": false,
       "input": {
         "text": "Final reminder: settle your overdue invoice today at http://198.51.100.99/invoice",
@@ -363,8 +403,6 @@
         "messages": [],
         "source": "manual"
       },
-      "support": "Text check misses the overall deadline; the completed URL result must be preserved",
-      "reviewers": [],
       "condition": {
         "detectors": {
           "text": "slow",
@@ -373,14 +411,14 @@
         "analysis_timeout_seconds": 0.3
       },
       "expected": {
-        "http_status": 200,
-        "status": "partial",
         "coverage": {
           "text": "unavailable",
           "url": "complete"
         },
         "evidence_required": true
-      }
+      },
+      "support": "Text check misses the overall deadline; the completed URL result must be preserved",
+      "reviewers": []
     }
   ]
 }

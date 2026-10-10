@@ -167,19 +167,25 @@ def contract_violations(body: dict[str, Any]) -> list[str]:
 
 
 def expectation_failures(scenario: dict[str, Any], status: int, body: dict[str, Any] | None) -> list[str]:
-    expected = scenario.get("expected", {})
+    """Compare a response with the scenario's stated expectations.
+
+    ``expected_http_status`` (default 200) and ``expected_status`` are top-level fields so other
+    tooling can read them; ``expected`` holds the extra checks (severity, coverage, evidence).
+    """
     failures = []
-    want_status = expected.get("http_status", 200)
-    if status != want_status:
-        failures.append(f"http_status {status} != {want_status}")
+    want_http = scenario.get("expected_http_status", 200)
+    if status != want_http:
+        failures.append(f"http_status {status} != {want_http}")
     if status == 200 and body is not None:
-        for key in ("status", "severity"):
-            if key in expected and body.get(key) != expected[key]:
-                failures.append(f"{key} {body.get(key)!r} != {expected[key]!r}")
-        for name, want in expected.get("coverage", {}).items():
+        extra = scenario.get("expected", {})
+        if "expected_status" in scenario and body.get("status") != scenario["expected_status"]:
+            failures.append(f"status {body.get('status')!r} != {scenario['expected_status']!r}")
+        if "severity" in extra and body.get("severity") != extra["severity"]:
+            failures.append(f"severity {body.get('severity')!r} != {extra['severity']!r}")
+        for name, want in extra.get("coverage", {}).items():
             if body.get("coverage", {}).get(name) != want:
                 failures.append(f"coverage.{name} {body.get('coverage', {}).get(name)!r} != {want!r}")
-        if expected.get("evidence_required") and not body.get("evidence"):
+        if extra.get("evidence_required") and not body.get("evidence"):
             failures.append("expected evidence but the result has none")
     return failures
 
@@ -211,7 +217,7 @@ def run_scenarios(scenarios: list[dict[str, Any]], post: Poster, *, can_apply_co
             )
             record["matched"] = record["actual"] == scenario["expected_verdict"]
         failures = expectation_failures(scenario, status, body)
-        if "expected" in scenario or status != 200:
+        if status != 200 or any(key in scenario for key in ("expected", "expected_status", "expected_http_status")):
             record["expectation_failures"] = failures
         records.append(record)
     return records

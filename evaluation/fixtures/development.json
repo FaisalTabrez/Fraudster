@@ -16,8 +16,10 @@
   "scenarios": [
     {
       "id": "DEV-01",
+      "split": "development",
       "group": "tpl-otp-notice",
       "category": "benign_notification",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -32,8 +34,10 @@
     },
     {
       "id": "DEV-02",
+      "split": "development",
       "group": "tpl-otp-notice",
       "category": "benign_notification",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -48,8 +52,10 @@
     },
     {
       "id": "DEV-03",
+      "split": "development",
       "group": "tpl-appointment",
       "category": "benign_notification",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -64,8 +70,10 @@
     },
     {
       "id": "DEV-04",
+      "split": "development",
       "group": "tpl-card-alert",
       "category": "benign_notification",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -80,8 +88,10 @@
     },
     {
       "id": "DEV-05",
+      "split": "development",
       "group": "tpl-password-notice",
       "category": "benign_notification",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": true,
@@ -96,8 +106,10 @@
     },
     {
       "id": "DEV-06",
+      "split": "development",
       "group": "tpl-delivery-legit",
       "category": "delivery",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -112,8 +124,10 @@
     },
     {
       "id": "DEV-07",
+      "split": "development",
       "group": "tpl-job-interview",
       "category": "job",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -128,8 +142,10 @@
     },
     {
       "id": "DEV-08",
+      "split": "development",
       "group": "tpl-delivery-legit",
       "category": "delivery",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -144,8 +160,10 @@
     },
     {
       "id": "DEV-09",
+      "split": "development",
       "group": "tpl-promo-sale",
       "category": "promotion",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "spam",
       "ambiguous": false,
@@ -160,8 +178,10 @@
     },
     {
       "id": "DEV-10",
+      "split": "development",
       "group": "tpl-promo-sale",
       "category": "promotion",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "spam",
       "ambiguous": false,
@@ -176,8 +196,10 @@
     },
     {
       "id": "DEV-11",
+      "split": "development",
       "group": "tpl-promo-loyalty",
       "category": "promotion",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "spam",
       "ambiguous": true,
@@ -192,8 +214,10 @@
     },
     {
       "id": "DEV-12",
+      "split": "development",
       "group": "tpl-code-scam",
       "category": "credential_scam",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -208,8 +232,10 @@
     },
     {
       "id": "DEV-13",
+      "split": "development",
       "group": "tpl-code-scam",
       "category": "credential_scam",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -224,8 +250,10 @@
     },
     {
       "id": "DEV-14",
+      "split": "development",
       "group": "tpl-delivery-scam",
       "category": "delivery",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -240,8 +268,10 @@
     },
     {
       "id": "DEV-15",
+      "split": "development",
       "group": "tpl-delivery-scam",
       "category": "delivery",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -256,8 +286,10 @@
     },
     {
       "id": "DEV-16",
+      "split": "development",
       "group": "tpl-job-scam",
       "category": "job",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -272,8 +304,10 @@
     },
     {
       "id": "DEV-17",
+      "split": "development",
       "group": "tpl-job-scam",
       "category": "job",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -288,8 +322,10 @@
     },
     {
       "id": "DEV-18",
+      "split": "development",
       "group": "tpl-prize-scam",
       "category": "fake_offer",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -304,8 +340,10 @@
     },
     {
       "id": "DEV-19",
+      "split": "development",
       "group": "tpl-refund-scam",
       "category": "fake_offer",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -320,8 +358,10 @@
     },
     {
       "id": "DEV-20",
+      "split": "development",
       "group": "tpl-toll-scam",
       "category": "payment_pressure",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -336,8 +376,10 @@
     },
     {
       "id": "DEV-21",
+      "split": "development",
       "group": "tpl-family-scam",
       "category": "payment_pressure",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -352,8 +394,10 @@
     },
     {
       "id": "DEV-22",
+      "split": "development",
       "group": "tpl-url-deeplink",
       "category": "benign_notification",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -369,8 +413,10 @@
     },
     {
       "id": "DEV-23",
+      "split": "development",
       "group": "tpl-url-ip",
       "category": "credential_scam",
+      "case_kind": "detection",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -386,8 +432,10 @@
     },
     {
       "id": "DEV-24",
+      "split": "development",
       "group": "thr-escalation-a",
       "category": "conversation",
+      "case_kind": "conversation",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -418,8 +466,10 @@
     },
     {
       "id": "DEV-25",
+      "split": "development",
       "group": "thr-payment-b",
       "category": "conversation",
+      "case_kind": "conversation",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
       "ambiguous": false,
@@ -450,8 +500,10 @@
     },
     {
       "id": "DEV-26",
+      "split": "development",
       "group": "thr-benign-c",
       "category": "conversation",
+      "case_kind": "conversation",
       "provenance": "synthetic_authored",
       "expected_verdict": "legitimate",
       "ambiguous": false,
@@ -482,8 +534,10 @@
     },
     {
       "id": "DEV-27",
+      "split": "development",
       "group": "thr-split-d",
       "category": "conversation",
+      "case_kind": "conversation",
       "provenance": "synthetic_authored",
       "expected_verdict": "unknown",
       "ambiguous": false,
@@ -509,10 +563,14 @@
     },
     {
       "id": "DEV-28",
+      "split": "development",
       "group": "fail-text-down",
       "category": "failure",
+      "case_kind": "failure",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
+      "expected_http_status": 200,
+      "expected_status": "partial",
       "ambiguous": false,
       "input": {
         "text": "Your parcel is held. Pay the fee now at http://198.51.100.24/pay",
@@ -520,8 +578,6 @@
         "messages": [],
         "source": "manual"
       },
-      "support": "Text check is down while the URL check completes; the partial result must keep the URL evidence",
-      "reviewers": [],
       "condition": {
         "detectors": {
           "text": "unavailable",
@@ -529,21 +585,25 @@
         }
       },
       "expected": {
-        "http_status": 200,
-        "status": "partial",
         "coverage": {
           "text": "unavailable",
           "url": "complete"
         },
         "evidence_required": true
-      }
+      },
+      "support": "Text check is down while the URL check completes; the partial result must keep the URL evidence",
+      "reviewers": []
     },
     {
       "id": "DEV-29",
+      "split": "development",
       "group": "fail-url-down",
       "category": "failure",
+      "case_kind": "failure",
       "provenance": "synthetic_authored",
       "expected_verdict": "suspected_scam",
+      "expected_http_status": 200,
+      "expected_status": "complete",
       "ambiguous": false,
       "input": {
         "text": "Confirm your PIN by replying now to keep your account open.",
@@ -551,8 +611,6 @@
         "messages": [],
         "source": "manual"
       },
-      "support": "URL service is down but the message has no link, so the text scam keeps its evidence",
-      "reviewers": [],
       "condition": {
         "detectors": {
           "text": "ok",
@@ -560,21 +618,25 @@
         }
       },
       "expected": {
-        "http_status": 200,
-        "status": "complete",
         "coverage": {
           "text": "complete",
           "url": "not_applicable"
         },
         "evidence_required": true
-      }
+      },
+      "support": "URL service is down but the message has no link, so the text scam keeps its evidence",
+      "reviewers": []
     },
     {
       "id": "DEV-30",
+      "split": "development",
       "group": "fail-both-down",
       "category": "failure",
+      "case_kind": "failure",
       "provenance": "synthetic_authored",
       "expected_verdict": "unknown",
+      "expected_http_status": 200,
+      "expected_status": "unavailable",
       "ambiguous": false,
       "input": {
         "text": "Update your billing details at http://192.0.2.88/billing before midnight.",
@@ -582,8 +644,6 @@
         "messages": [],
         "source": "manual"
       },
-      "support": "Every applicable detector is down; the result must be unknown, never clean or zero risk",
-      "reviewers": [],
       "condition": {
         "detectors": {
           "text": "unavailable",
@@ -591,14 +651,14 @@
         }
       },
       "expected": {
-        "http_status": 200,
-        "status": "unavailable",
         "severity": "unknown",
         "coverage": {
           "text": "unavailable",
           "url": "unavailable"
         }
-      }
+      },
+      "support": "Every applicable detector is down; the result must be unknown, never clean or zero risk",
+      "reviewers": []
     }
   ]
 }

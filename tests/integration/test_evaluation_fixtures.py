@@ -255,3 +255,94 @@ def test_output_file_is_only_written_when_requested(tmp_path: Path, monkeypatch:
     monkeypatch.setattr(sys, "argv", ["run_evaluation.py", "--in-process", "--set", "bootstrap", "--output", str(target)])
     assert run_evaluation.main() == 0
     assert json.loads(target.read_text(encoding="utf-8"))["set"] == "bootstrap"
+
+
+# --- schema fields, the release gate, and the review sheet ----------------------------------
+
+def test_every_scenario_names_its_split_and_case_kind() -> None:
+    kinds = {"conversation": "conversation", "failure": "failure"}
+    for name in ("development", "holdout"):
+        for scenario in scenarios(name):
+            assert scenario["split"] == name, scenario["id"]
+            assert scenario["case_kind"] == kinds.get(scenario["category"], "detection"), scenario["id"]
+
+
+def test_sets_carry_the_fields_a_release_gate_reads() -> None:
+    """The release gate in the release-readiness work counts these fields per scenario.
+
+    This mirrors what it reads, so the sets are ready for it once the labels are reviewed.
+    """
+    every = [s for name in ("development", "holdout") for s in scenarios(name)]
+    assert sum(s["split"] == "development" for s in every) >= 30
+    assert sum(s["split"] == "holdout" for s in every) >= 20
+    assert sum(s["input"].get("source") == "conversation" for s in every) >= 6
+    assert sum(s["case_kind"] == "failure" for s in every) >= 5
+    assert all(s["provenance"] and str(s["support"]).strip() and isinstance(s["reviewers"], list) for s in every)
+
+
+def test_failure_scenarios_state_their_status_at_the_top_level() -> None:
+    failures = [s for name in ("development", "holdout") for s in scenarios(name) if s["case_kind"] == "failure"]
+    assert len(failures) == 5
+    assert all(isinstance(s["expected_http_status"], int) for s in failures)
+    assert all("expected_status" in s for s in failures if s["expected_http_status"] == 200)
+    assert all("http_status" not in s.get("expected", {}) and "status" not in s.get("expected", {}) for s in failures)
+
+
+def test_validator_rejects_a_wrong_split_or_case_kind(sandbox) -> None:
+    sandbox("development", lambda d: d["scenarios"][0].update(split="holdout"))
+    assert "split must be 'development'" in problems()
+    sandbox("development", lambda d: d["scenarios"][0].update(split="development", case_kind="failure"))
+    assert "case_kind must be 'detection'" in problems()
+
+
+def test_validator_requires_failure_scenarios_to_state_their_status(sandbox) -> None:
+    def drop(document: dict) -> None:
+        failure = next(s for s in document["scenarios"] if s["id"] == "DEV-28")
+        del failure["expected_status"]
+
+    sandbox("development", drop)
+    assert "must state expected_status" in problems()
+    sandbox("development", lambda d: next(s for s in d["scenarios"] if s["id"] == "DEV-28").update(expected_status="fine"))
+    assert "expected_status must be" in problems()
+    sandbox("development", lambda d: next(s for s in d["scenarios"] if s["id"] == "DEV-28").pop("expected_http_status"))
+    assert "integer expected_http_status" in problems()
+
+
+def test_review_sheet_lists_every_scenario_and_flags_the_ambiguous_ones() -> None:
+    sheet = validate_fixtures.render_review_sheet()
+    ids = [s["id"] for name in ("development", "holdout") for s in scenarios(name)]
+    assert all(f"### {sid} " in sheet for sid in ids) and len(ids) == 50
+    flagged = [s["id"] for name in ("development", "holdout") for s in scenarios(name) if s["ambiguous"]]
+    assert flagged and all(f"### {sid} " in sheet and "AMBIGUOUS" in sheet.split(f"### {sid} ")[1].split("\n")[0] for sid in flagged)
+    # Message text and a failure condition are visible, so a reviewer needs nothing else open.
+    assert "Condition:" in sheet and "**sender-a**" in sheet and "Proposed label:" in sheet
+
+
+def test_blind_review_sheet_hides_the_drafters_view() -> None:
+    sheet = validate_fixtures.render_review_sheet(blind=True)
+    for hidden in ("Proposed label", "Rationale", "AMBIGUOUS", "Reviewers so far"):
+        assert hidden not in sheet
+    assert sheet.count("Your label") == 50
+    # The fixture's labels must not appear anywhere in the blind sheet's per-scenario blocks.
+    assert "**suspected_scam**" not in sheet and "**legitimate**" not in sheet
+
+
+def test_review_sheet_cli_writes_a_file_and_blind_needs_a_sheet(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys) -> None:
+    target = tmp_path / "sheet.md"
+    monkeypatch.setattr(sys, "argv", ["validate_fixtures.py", "--review-sheet", str(target), "--blind"])
+    assert validate_fixtures.main() == 0
+    assert "Blind sheet" in target.read_text(encoding="utf-8")
+    monkeypatch.setattr(sys, "argv", ["validate_fixtures.py", "--blind"])
+    with pytest.raises(SystemExit) as exit_info:
+        validate_fixtures.main()
+    assert exit_info.value.code == 2
+    assert "--blind only applies" in capsys.readouterr().err
+
+
+def test_expectations_use_the_top_level_status_fields() -> None:
+    scenario = {"expected_http_status": 200, "expected_status": "partial", "expected": {"coverage": {"text": "unavailable"}}}
+    body = {"status": "partial", "coverage": {"text": "unavailable"}, "evidence": []}
+    assert run_evaluation.expectation_failures(scenario, 200, body) == []
+    assert run_evaluation.expectation_failures(scenario, 200, {**body, "status": "complete"}) == ["status 'complete' != 'partial'"]
+    assert run_evaluation.expectation_failures({"expected_http_status": 422}, 200, body) == ["http_status 200 != 422"]
+    assert run_evaluation.expectation_failures({}, 422, None) == ["http_status 422 != 200"]
