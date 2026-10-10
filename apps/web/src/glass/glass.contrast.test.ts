@@ -94,6 +94,21 @@ describe("glass.css rules", () => {
     expect(css).toContain("forced-colors: active");
   });
 
+  it("every fallback also covers the sticky mobile submit bar", () => {
+    // .scan-submit (styles.css) uses the tier 3 fill and blur, so each fallback must override it.
+    const blocks = [
+      "@supports not ((backdrop-filter: blur(1px))",
+      "@media (prefers-reduced-transparency: reduce), (prefers-contrast: more)",
+      "@media (forced-colors: active)",
+    ];
+    for (const start of blocks) {
+      const from = css.indexOf(start);
+      expect(from, start).toBeGreaterThan(-1);
+      const next = css.indexOf("\n}\n", from);
+      expect(css.slice(from, next), start).toContain(".glass-stage .scan-submit");
+    }
+  });
+
   it("orders the tiers from most transparent to most opaque", () => {
     expect(tiers["tier 1"]).toBeLessThan(tiers["tier 2"]);
     expect(tiers["tier 2"]).toBeLessThan(tiers["tier 3"]);
