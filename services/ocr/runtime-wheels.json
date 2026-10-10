@@ -1,0 +1,14 @@
+{
+  "paddleocr": {
+    "version": "2.9.1",
+    "filename": "paddleocr-2.9.1-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/ff/92/e92fd1bc67c562b653f0eff37379e96b77c7e318c90a637e6f586d4eb532/paddleocr-2.9.1-py3-none-any.whl",
+    "sha256": "73fa76fa3be118d8469141ad72b2665f30795386bdd87b2bde5ff7ee3069e1be"
+  },
+  "imgaug": {
+    "version": "0.4.0",
+    "filename": "imgaug-0.4.0-py2.py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/66/b1/af3142c4a85cba6da9f4ebb5ff4e21e2616309552caca5e8acefe9840622/imgaug-0.4.0-py2.py3-none-any.whl",
+    "sha256": "ce61e65b4eb7405fc62c1b0a79d2fa92fd47f763aaecb65152d29243592111f9"
+  }
+}
