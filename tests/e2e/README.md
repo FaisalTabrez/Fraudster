@@ -45,3 +45,11 @@ This pads the generated synthetic PNG to exactly 5,000,000 bytes, verifies OCR
 succeeds through the public proxy, and checks that one extra byte receives a
 contract-shaped 413 unavailable result. Nginx permits the gateway's bounded
 multipart envelope and streams requests instead of buffering uploads to disk.
+
+The model-free CI variant uses an embedded synthetic PNG and expects the valid
+5 MB request to reach OCR availability handling rather than be rejected by
+Nginx. It still verifies the gateway's contract-shaped rejection at 5 MB + 1:
+
+```powershell
+python tests/e2e/upload_limit_smoke.py --expect-ocr-unavailable
+```

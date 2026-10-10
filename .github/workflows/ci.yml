@@ -69,6 +69,7 @@ jobs:
       - name: Verify fixture API, evaluation contract, and browser flow
         run: |
           python scripts/smoke.py --expect fixture
+          python tests/e2e/upload_limit_smoke.py --expect-ocr-unavailable
           python evaluation/run_evaluation.py
           npm --prefix apps/web run test:e2e
       - name: Recreate live gateway and verify partial and unavailable paths
