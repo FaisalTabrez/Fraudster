@@ -33,8 +33,7 @@ Fraudster is a personal safety assistant that checks a message, link or conversa
 - Desktop: content max 1280px, side padding `space-32`, form and result columns side by side with `space-28` between (form 1 : result 1.5). Cards pad `space-28`; the result stack gaps `space-20`.
 - Mobile (390px): side padding `space-16`–`space-20`, one step per screen, a sticky bottom submit on `ground` with a `line` top rule.
 - Radii: `radius-16` cards, `radius-12` buttons/inputs/banners, `radius-10` inline panels, `radius-pill` chips and tags.
-- Glass morphism is an optional presentation layer, never a semantic one. Use `glass-surface`, `glass-line`, `glass-shadow`, and `glass-blur` only on cards over the neutral page gradients. Keep verdict fills, demo stripes, controls, text, and focus rings opaque enough to preserve their documented contrast and meaning.
-- Glass must progressively fall back to `surface` with a normal border when backdrop filtering is unsupported, and it must be disabled for `prefers-reduced-transparency`. A border remains present, so shadow or blur is never the only card boundary.
+- Borders, not shadows. The only shadow is `shadow-segment` on the active segment.
 - Touch targets are at least `control-min` (44px); primary submit is `control-lg` (52px).
 - Keyboard focus: a 2px solid `brand` outline, offset 2px (8.5:1 on `ground`).
 

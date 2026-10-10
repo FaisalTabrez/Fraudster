@@ -211,6 +211,8 @@
   .glass-field__control { --glass-fill: var(--surface); }
   .glass-tab[aria-selected="true"], .glass-seg button[aria-pressed="true"] { background: var(--surface); }
   .glass-control, .fr-field .glass-control, .fr-seg.glass-seg { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  /* Sticky mobile submit bar (styles.css) is declared later, so it needs the extra class to win. */
+  .glass-stage .scan-submit { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 
 /* 2. No color-mix(): use the solid tokens. The ambient mesh falls back to a flat brand tint. */
@@ -228,6 +230,8 @@
   .glass-btn--primary { --glass-fill: var(--brand); }
   .glass::after { display: none; }
   .glass-control, .fr-field .glass-control, .fr-seg.glass-seg { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  /* Sticky mobile submit bar (styles.css) is declared later, so it needs the extra class to win. */
+  .glass-stage .scan-submit { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 
 /* 4. Windows high contrast / forced colours: system colours, no effects */
@@ -235,6 +239,7 @@
   .glass { background: Canvas; border-color: CanvasText; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .glass::before, .glass::after, .glass-stage::before, .glass-stage::after { display: none; }
   .glass-tab[aria-selected="true"] { outline: 2px solid Highlight; }
+  .glass-stage .scan-submit { background: Canvas; border-top-color: CanvasText; -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

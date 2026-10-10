@@ -7,6 +7,7 @@ export function InertUrl({ value, badge = true }: { value: string; badge?: boole
   const scheme = parts?.[1] ?? "";
   const authority = parts?.[2] ?? value;
   const rest = parts?.[3] ?? "";
+  // Dim anything before "@": "https://google.com@evil.example/" really goes to evil.example.
   const userInfoEnd = authority.lastIndexOf("@") + 1;
   const userInfo = userInfoEnd > 0 ? authority.slice(0, userInfoEnd) : "";
   const host = userInfoEnd > 0 ? authority.slice(userInfoEnd) : authority;

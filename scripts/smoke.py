@@ -10,6 +10,11 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
+def require(condition: bool, detail: str) -> None:
+    if not condition:
+        raise RuntimeError(detail)
+
+
 def get_json(url: str) -> tuple[int, dict]:
     try:
         with urlopen(url, timeout=5) as response:
@@ -56,26 +61,30 @@ def main() -> int:
         print(f"smoke: connection or JSON failure: {exc}", file=sys.stderr)
         return 1
 
-    assert live_status == 200 and live["status"] == "live"
-    assert ready_status in (200, 503)
-    assert analyze_status == 200
-    assert analysis["risk_score"] is None
-    assert analysis["probability_calibrated"] is False
-    assert set(analysis["coverage"]) == {"text", "url", "conversation", "reputation"}
-    if analysis["verdict"] == "suspected_scam":
-        assert analysis["evidence"], "positive scam verdict must cite evidence"
-    if args.expect == "fixture":
-        assert analysis["fixture_generated"] is True
-        assert ready_status == 200 and ready["mode"] == "fixture"
-    if args.expect == "unavailable":
-        assert analysis["fixture_generated"] is False
-        assert analysis["status"] == "unavailable"
-        assert analysis["verdict"] == "unknown"
-    if args.expect == "partial":
-        assert analysis["fixture_generated"] is False
-        assert analysis["status"] == "partial"
-        assert analysis["coverage"]["url"] == "complete"
-        assert analysis["coverage"]["text"] == "unavailable"
+    try:
+        require(live_status == 200 and live["status"] == "live", "liveness check failed")
+        require(ready_status in (200, 503), f"unexpected readiness HTTP {ready_status}")
+        require(analyze_status == 200, f"analysis returned HTTP {analyze_status}")
+        require(analysis["risk_score"] is None, "aggregate risk_score must remain null")
+        require(analysis["probability_calibrated"] is False, "aggregate probability must not be calibrated")
+        require(set(analysis["coverage"]) == {"text", "url", "conversation", "reputation"}, "coverage keys changed")
+        if analysis["verdict"] == "suspected_scam":
+            require(bool(analysis["evidence"]), "positive scam verdict must cite evidence")
+        if args.expect == "fixture":
+            require(analysis["fixture_generated"] is True, "fixture mode must identify demo data")
+            require(ready_status == 200 and ready["mode"] == "fixture", "fixture mode must report ready")
+        if args.expect == "unavailable":
+            require(analysis["fixture_generated"] is False, "live unavailable mode must not return fixture data")
+            require(analysis["status"] == "unavailable", "expected an unavailable result")
+            require(analysis["verdict"] == "unknown", "unavailable result must have an unknown verdict")
+        if args.expect == "partial":
+            require(analysis["fixture_generated"] is False, "live partial mode must not return fixture data")
+            require(analysis["status"] == "partial", "expected a partial result")
+            require(analysis["coverage"]["url"] == "complete", "partial mode must preserve URL coverage")
+            require(analysis["coverage"]["text"] == "unavailable", "partial mode must expose unavailable text coverage")
+    except (KeyError, RuntimeError) as exc:
+        print(f"smoke: FAIL {exc}", file=sys.stderr)
+        return 1
 
     print(
         json.dumps(

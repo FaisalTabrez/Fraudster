@@ -112,7 +112,7 @@ export function ResultPanel({ result, messages = [] }: ResultPanelProps) {
   const applicable = coverageOrder.filter((key) => result.coverage[key] !== "not_applicable");
   const ran = applicable.filter((key) => result.coverage[key] === "complete");
   const modules = Object.entries(result.module_results);
-  const heading = result.status === "partial" && result.verdict === "legitimate"
+  const heading = result.status !== "complete" && result.verdict === "legitimate"
     ? "Only some checks ran. Verify independently before you act."
     : actionHeadline[result.verdict];
 
