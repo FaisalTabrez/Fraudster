@@ -112,6 +112,9 @@ export function ResultPanel({ result, messages = [] }: ResultPanelProps) {
   const applicable = coverageOrder.filter((key) => result.coverage[key] !== "not_applicable");
   const ran = applicable.filter((key) => result.coverage[key] === "complete");
   const modules = Object.entries(result.module_results);
+  const heading = result.status !== "complete" && result.verdict === "legitimate"
+    ? "Only some checks ran. Verify independently before you act."
+    : actionHeadline[result.verdict];
 
   return (
     <div className="result-stack">
@@ -125,9 +128,7 @@ export function ResultPanel({ result, messages = [] }: ResultPanelProps) {
       <section className={`fr-action fr-tone-${tone}`} aria-labelledby="result-heading">
         <p className="fr-eyebrow">What to do now</p>
         <h2 id="result-heading" ref={headingRef} tabIndex={-1} className="fr-action__title">
-          {result.status !== "complete" && result.verdict === "legitimate"
-            ? "Only some checks ran. Verify before you act."
-            : actionHeadline[result.verdict]}
+          {heading}
         </h2>
         <p className="fr-action__body">{result.recommendation}</p>
         <div className="fr-action__foot">

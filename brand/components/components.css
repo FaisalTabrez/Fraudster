@@ -44,6 +44,7 @@
 .fr-url{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 8px 10px 14px;border-radius:var(--radius-10);background:var(--sunken);border:1px solid var(--line)}
 .fr-url__text{font-family:var(--font-mono);font-size:14px;color:var(--ink);word-break:break-all}
 .fr-url__dim{color:var(--caption)}
+.fr-url__host{font-weight:600}
 .fr-url__badge{flex:none;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink-2);padding:3px 9px;border-radius:var(--radius-pill);background:var(--surface);border:1px solid var(--line)}
 
 /* Verdict tones (action card + verdict card) */

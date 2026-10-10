@@ -8,6 +8,9 @@ on:
 permissions:
   contents: read
 
+# No job needs a paid provider key, a secret, or a model download. The integration tests
+# remove provider credentials from their environment and refuse non-loopback connections.
+
 jobs:
   web:
     runs-on: ubuntu-latest
@@ -37,6 +40,19 @@ jobs:
           cache-dependency-path: services/gateway/requirements-dev.txt
       - run: python -m pip install -r services/gateway/requirements-dev.txt
       - run: python -m pytest -q services/gateway/tests services/text/tests services/ocr/tests tests/integration
+      # Structure rules for the 30-case development and 20-case holdout sets.
+      - run: python evaluation/validate_fixtures.py
+      # The synthetic scenarios as review sheets, so the two reviewers can label them without a local setup.
+      - run: |
+          python evaluation/validate_fixtures.py --review-sheet review-sheets/label-review.md
+          python evaluation/validate_fixtures.py --review-sheet review-sheets/label-review-blind.md --blind
+      - uses: actions/upload-artifact@v4
+        with:
+          name: label-review-sheets
+          path: review-sheets/
+      # Contract and degraded-mode run of the development set. It is not a detection result and
+      # never runs the holdout. Fails on contract violations or unmet failure-scenario expectations.
+      - run: python evaluation/run_evaluation.py --in-process --set development --check-expectations --output /tmp/development-contract-run.json
 
   url-python-313:
     runs-on: ubuntu-latest
@@ -46,6 +62,42 @@ jobs:
         with:
           python-version: "3.13"
           cache: pip
-          cache-dependency-path: services/url/requirements-dev.txt
-      - run: python -m pip install -r services/url/requirements-dev.txt
-      - run: python -m pytest -q services/url/tests
+          cache-dependency-path: |
+            services/url/requirements-dev.txt
+            services/gateway/requirements-dev.txt
+      - run: python -m pip install -r services/url/requirements-dev.txt -r services/gateway/requirements-dev.txt
+      # The integration tests that drive the real URL service need Python 3.13, so they run here
+      # as well as in the gateway job, where they skip that part.
+      - run: python -m pytest -q services/url/tests tests/integration
+
+  compose-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.21.0"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+        working-directory: apps/web
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: docker compose config
+      - name: Start clean fixture stack
+        run: DEMO_MODE=true docker compose up --build --wait --wait-timeout 180
+      - name: Verify fixture API, evaluation contract, and browser flow
+        run: |
+          python scripts/smoke.py --expect fixture
+          python tests/e2e/upload_limit_smoke.py --expect-ocr-unavailable
+          python evaluation/run_evaluation.py
+          npm --prefix apps/web run test:e2e
+      - name: Recreate live gateway and verify partial and unavailable paths
+        run: |
+          DEMO_MODE=false docker compose up -d --force-recreate --wait --wait-timeout 120 gateway web
+          python scripts/smoke.py --expect partial
+          python scripts/smoke.py --expect unavailable
+      - name: Stop stack
+        if: always()
+        run: docker compose down --remove-orphans

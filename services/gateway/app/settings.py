@@ -10,8 +10,6 @@ class Settings(BaseSettings):
     ocr_service_url: str = "http://ocr:8000"
     analysis_timeout_seconds: float = Field(default=10.0, gt=0, le=30)
     demo_mode: bool = False
-    text_model: str = "configure-me"
-    text_api_key: str = ""
 
     @property
     def detector_timeout_seconds(self) -> float:
