@@ -22,6 +22,7 @@
   --glass-glow-alpha: 22%;   /* strongest brand glow that may sit behind any glass */
   --glass-solid-alpha: 88%;  /* brand-tinted primary glass button */
   --glass-field-alpha: 78%;  /* text areas, inputs and segmented controls */
+  --glass-control-border-alpha: 55%;  /* --ink over --surface: a control boundary of at least 3:1 (WCAG 1.4.11) */
 
   --glass-1-fill: color-mix(in srgb, var(--surface) var(--glass-1-alpha), transparent);
   --glass-2-fill: color-mix(in srgb, var(--surface) var(--glass-2-alpha), transparent);
@@ -159,24 +160,22 @@
 /* ---- Native controls on glass: a textarea or input styled directly (no wrapper) ---- */
 .glass-control, .fr-field .glass-control {
   background: color-mix(in srgb, var(--surface) var(--glass-field-alpha), transparent);
-  -webkit-backdrop-filter: var(--glass-2-blur);
-  backdrop-filter: var(--glass-2-blur);
-  border: 1px solid var(--line-control);
+  /* No backdrop blur here: the control sits inside a blurred card, and a 78% fill hides what a blur would show. */
+  border: 1px solid var(--caption);
+  border-color: color-mix(in srgb, var(--ink) var(--glass-control-border-alpha), var(--surface));
   border-radius: var(--radius-12);
   box-shadow: inset 0 1px 0 var(--glass-rim-hi), 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent);
   color: var(--ink);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .glass-control::placeholder { color: var(--caption); }
-.glass-control:hover { border-color: var(--line-strong); }
+.glass-control:hover { border-color: var(--ink-2); }
 .glass-control:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-color: var(--brand); }
 .glass-control[aria-invalid="true"] { border-color: var(--scam-fg); }
 
 /* ---- Segmented control on glass: tier 1 track, tier 3 selected segment ---- */
 .fr-seg.glass-seg {
   background: var(--glass-1-fill);
-  -webkit-backdrop-filter: var(--glass-1-blur);
-  backdrop-filter: var(--glass-1-blur);
   border: 1px solid var(--glass-edge);
   box-shadow: var(--glass-1-shadow);
 }
@@ -185,6 +184,9 @@
 .glass-seg button[aria-pressed="true"] { background: var(--glass-3-fill); color: var(--brand); box-shadow: var(--shadow-segment), inset 0 0 0 1px var(--glass-edge); }
 
 .glass-btn--block { width: 100%; }
+
+/* A glass row inside a glass card keeps the fill and rim but not a second blur. */
+.glass--nested { -webkit-backdrop-filter: none; backdrop-filter: none; }
 
 /* ---- Field (tier 2) ---- */
 .glass-field { display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 600; color: var(--ink); }

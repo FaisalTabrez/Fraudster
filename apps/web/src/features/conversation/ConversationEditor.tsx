@@ -57,7 +57,7 @@ export function ConversationEditor({ messages, onChange }: Props) {
         Sender IDs are compared exactly as typed, including spaces.
       </p>
       {messages.map((message, index) => (
-        <div className="message-row glass glass--1" role="group" aria-labelledby={`message-${message.id}-title`} key={message.id}>
+        <div className="message-row glass glass--1 glass--nested" role="group" aria-labelledby={`message-${message.id}-title`} key={message.id}>
           <div className="message-row-head">
             <strong id={`message-${message.id}-title`}>Message <code className="fr-chip fr-mono">{message.id}</code></strong>
             <button
