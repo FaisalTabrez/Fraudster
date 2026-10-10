@@ -5,7 +5,7 @@
 - `POST /v1/analyze` accepts the frozen JSON request and returns the frozen analysis response.
 - `POST /v1/extract` accepts one PNG/JPEG multipart `file`, forwarding to optional private OCR. All extraction results use the existing extraction response shape.
 - `GET /health/live` reports a running process.
-- `GET /health/ready` returns HTTP 200 with `mode: "fixture"` in fixture mode. In live mode the gateway probes the private text and URL detectors' `/health/ready` with the detector timeout and returns per-detector `{ready, state}` under `detectors`: HTTP 200 only when every detector is ready, otherwise HTTP 503 with `reasons` naming each detector that is not ready (for example `text detector not ready (not_configured)`). Only detector status words are reported, never message text or provider responses. `/health/live` does not depend on detectors.
+- `GET /health/ready` returns HTTP 200 in fixture mode. In live mode it probes the fixed private text and URL readiness routes, returns HTTP 200 only when both are ready, and otherwise returns HTTP 503 with safe per-detector availability—not provider error bodies.
 
 The packaged browser calls these routes through the same-origin `/api` prefix. The prefix is deployment routing and is not part of the gateway route itself.
 
@@ -36,7 +36,7 @@ Conversation rules group messages by `sender_id`; evidence from different sender
 
 ## Internal route
 
-Text and URL services expose `POST /predict` plus health routes. The text predictor still returns HTTP 503 until its reviewed adapter is configured. The URL predictor uses the pinned string-only extractor, rules, and JSON model and returns the gateway `ModuleResult` shape; it never fetches the submitted URL. Its 0–100 blended policy score is not the aggregate `risk_score` or a calibrated fraud probability.
+Text and URL services expose `POST /predict` plus health routes. The text predictor uses a reviewed structured OpenAI-compatible adapter and returns HTTP 503 until its model, key, and provider are configured. The URL predictor uses the pinned string-only extractor, rules, and JSON model and returns the gateway `ModuleResult` shape; it never fetches the submitted URL. Its 0–100 blended policy score is not the aggregate `risk_score` or a calibrated fraud probability.
 
 ## Extraction boundary
 

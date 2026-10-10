@@ -28,23 +28,25 @@ class DetectorClients:
         )
 
     async def readiness(self) -> dict[str, dict[str, object]]:
-        """Probe each private detector's /health/ready; only status words are surfaced."""
-        names = {"text": self.settings.text_service_url, "url": self.settings.url_service_url}
-        probed = await asyncio.gather(*(self._probe(url) for url in names.values()))
-        return dict(zip(names, probed, strict=True))
+        """Probe only the fixed private detector endpoints; never include submitted data."""
+        names = ("text", "url")
+        checks = await asyncio.gather(
+            self._ready("text", self.settings.text_service_url),
+            self._ready("url", self.settings.url_service_url),
+        )
+        return dict(zip(names, checks, strict=True))
 
-    async def _probe(self, base_url: str) -> dict[str, object]:
+    async def _ready(self, name: str, base_url: str) -> dict[str, object]:
+        endpoint = f"{base_url.rstrip('/')}/health/ready"
+        timeout = min(2.0, self.settings.detector_timeout_seconds)
         try:
-            async with httpx.AsyncClient(timeout=self.settings.detector_timeout_seconds) as client:
-                response = await client.get(f"{base_url.rstrip('/')}/health/ready")
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                response = await client.get(endpoint)
             body = response.json()
-            state = body.get("status") if isinstance(body, dict) else None
-            state = state if isinstance(state, str) and state.isidentifier() else "unknown"
-            return {"ready": response.status_code == 200 and body.get("ready") is True, "state": state}
-        except httpx.TimeoutException:
-            return {"ready": False, "state": "timeout"}
-        except (httpx.HTTPError, ValueError, AttributeError):
-            return {"ready": False, "state": "unreachable"}
+            ready = response.status_code == 200 and isinstance(body, dict) and body.get("ready") is True
+        except (httpx.HTTPError, ValueError, TypeError):
+            ready = False
+        return {"ready": ready, "status": "ready" if ready else "unavailable", "service": name}
 
     async def _post(self, name: str, base_url: str, payload: dict[str, Any]) -> ModuleResult:
         endpoint = f"{base_url.rstrip('/')}/predict"

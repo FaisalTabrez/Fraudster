@@ -77,7 +77,7 @@ function isModuleResult(value: unknown): boolean {
 // must be null until a documented aggregate policy exists, so anything else is rejected
 // rather than shown.
 function isAnalysisResponse(value: unknown): value is AnalysisResponse {
-  if (!isRecord(value) || !isRecord(value.coverage) || !isRecord(value.module_results)) return false;
+  if (!isRecord(value) || !isRecord(value.coverage) || !isRecord(value.module_results) || !isRecord(value.versions)) return false;
   const coverage = value.coverage;
   return (
     isString(value.analysis_id, 1) &&
@@ -89,6 +89,9 @@ function isAnalysisResponse(value: unknown): value is AnalysisResponse {
     COVERAGE_KEYS.every((key) => oneOf(COVERAGE_STATUSES, coverage[key])) &&
     hasValidEvidence(value.evidence, value.verdict) &&
     Object.values(value.module_results).every(isModuleResult) &&
+    // versions is rendered in Technical details, and the schema requires it.
+    isRecord(value.versions) &&
+    Object.values(value.versions).every((version) => typeof version === "string") &&
     isString(value.recommendation, 1) &&
     Array.isArray(value.limitations) &&
     value.limitations.every((item) => isString(item, 1)) &&

@@ -27,21 +27,18 @@ def create_app(settings: Settings | None = None, detectors: DetectorClients | No
     @app.get("/health/ready")
     async def ready(response: Response) -> dict[str, object]:
         if resolved.demo_mode:
-            return {"status": "ready", "ready": True, "mode": "fixture"}
-        detectors_state = await app.state.detectors.readiness()
-        reasons = [
-            f"{name} detector not ready ({state['state']})"
-            for name, state in detectors_state.items()
-            if not state["ready"]
-        ]
-        if reasons:
+            return {"status": "ready", "ready": True, "mode": "fixture", "detectors": {}}
+        detectors_ready = await app.state.detectors.readiness()
+        unavailable = [name for name, check in detectors_ready.items() if check["ready"] is not True]
+        is_ready = not unavailable
+        if not is_ready:
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         return {
-            "status": "not_ready" if reasons else "ready",
-            "ready": not reasons,
+            "status": "ready" if is_ready else "not_ready",
+            "ready": is_ready,
             "mode": "live",
-            "detectors": detectors_state,
-            "reasons": reasons,
+            "detectors": detectors_ready,
+            "reasons": [f"{name} detector is not ready" for name in unavailable],
         }
 
     return app

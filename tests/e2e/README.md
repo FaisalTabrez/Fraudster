@@ -31,3 +31,24 @@ no automatic analysis, unsupported payment payload, invalid/no-code images,
 cleared stale review, and no external browser requests. It saves a synthetic-only
 screenshot under ignored `.venv/`. This opt-in test is separate from model-free
 CI and does not require changing existing P0 checks.
+
+## API walkthrough
+
+`demo_walkthrough.py` replays the request-level steps of `docs/demo-script.md` against a running gateway and prints a table of expected and actual results. It needs only the standard library.
+
+```powershell
+py -3 tests\e2e\demo_walkthrough.py --base-url http://127.0.0.1:8000 --mode fixture      # gateway with DEMO_MODE=true
+py -3 tests\e2e\demo_walkthrough.py --base-url http://127.0.0.1:8000 --mode unavailable  # DEMO_MODE=false, no detectors
+```
+
+It does not drive the browser, so the Demo data badge, evidence cards and OCR/QR steps still need the Playwright smoke above or a person.
+
+## Public upload boundary
+
+With the model-enabled container stack running, test the public Nginx upload boundary rather than only Vite or the private gateway:
+
+```powershell
+python tests/e2e/upload_limit_smoke.py --base-url http://127.0.0.1:4174/api
+```
+
+The check pads a generated synthetic PNG to exactly 5,000,000 bytes, verifies OCR through the public proxy, and checks that one extra byte receives a contract-shaped 413 unavailable result. It also verifies envelope-sized JSON 413 responses and that the analysis route keeps its default 1 MiB proxy limit. Without a model, use `--expect-ocr-unavailable` to require an honest 503; that mode uses an embedded synthetic PNG and stays hermetic. See `docs/ingestion-verification.md` for the portable model-enabled setup.

@@ -108,6 +108,9 @@ describe("analyze response validation", () => {
 
   const malformed: Array<[string, unknown]> = [
     ["a null module entry", withChange((copy) => { copy.module_results = { text: null }; })],
+    ["missing versions", withChange((copy) => { delete copy.versions; })],
+    ["null versions", withChange((copy) => { copy.versions = null; })],
+    ["a non-string version", withChange((copy) => { copy.versions = { gateway: 1 }; })],
     ["a string module entry", withChange((copy) => { copy.module_results = { text: "oops" }; })],
     ["an array module entry", withChange((copy) => { copy.module_results = { text: [] }; })],
     ["a module without fixture_generated", withModule({ fixture_generated: undefined })],
@@ -145,6 +148,10 @@ describe("analyze response validation", () => {
     ["evidence without an explanation", withEvidence({ explanation: undefined })],
     ["evidence with an empty explanation", withEvidence({ explanation: "" })],
     ["evidence with a numeric explanation", withEvidence({ explanation: 3 })],
+    ["missing versions", withChange((copy) => { delete copy.versions; })],
+    ["null versions", withChange((copy) => { copy.versions = null; })],
+    ["array versions", withChange((copy) => { copy.versions = ["0.1.0"]; })],
+    ["a non-string version value", withChange((copy) => { copy.versions = { gateway: 1 }; })],
     ["a negative processing time", withChange((copy) => { copy.processing_ms = -1; })],
     ["a fractional processing time", withChange((copy) => { copy.processing_ms = 12.5; })],
     ["a string processing time", withChange((copy) => { copy.processing_ms = "12"; })],
