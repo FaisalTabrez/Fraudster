@@ -3,6 +3,11 @@ import { FormEvent, useState } from "react";
 import type { AnalysisRequest, ConversationMessage } from "../../types/analysis";
 import { ConversationEditor } from "../conversation/ConversationEditor";
 
+// Limits mirror contracts/analysis-request.schema.json.
+const MAX_TEXT_LENGTH = 10000;
+const MAX_URLS = 5;
+const MAX_URL_LENGTH = 2048;
+
 interface Props {
   busy: boolean;
   onSubmit: (request: AnalysisRequest) => Promise<void>;
@@ -25,6 +30,15 @@ export function ScanForm({ busy, onSubmit }: Props) {
       setLocalError("Enter text, at least one URL, or a supplied conversation message.");
       return;
     }
+    if (parsedUrls.length > MAX_URLS) {
+      setLocalError(`You entered ${parsedUrls.length} URLs. Enter at most ${MAX_URLS}, one per line.`);
+      return;
+    }
+    const longUrl = parsedUrls.findIndex((value) => value.length > MAX_URL_LENGTH);
+    if (longUrl !== -1) {
+      setLocalError(`URL ${longUrl + 1} is longer than ${MAX_URL_LENGTH.toLocaleString()} characters. Shorten it or remove it.`);
+      return;
+    }
     setLocalError("");
     await onSubmit({
       text: text.trim() || undefined,
@@ -36,45 +50,54 @@ export function ScanForm({ busy, onSubmit }: Props) {
   };
 
   return (
-    <form className="scan-form" onSubmit={submit}>
+    <form className="scan-form" onSubmit={submit} aria-labelledby="scan-heading">
       <div className="section-heading">
         <span className="eyebrow">P0 manual flow</span>
-        <h2>Check what you can see</h2>
+        <h2 id="scan-heading">Check what you can see</h2>
         <p>Paste content directly. Submitted links are parsed as text and are never opened by this interface.</p>
       </div>
 
-      <label>
-        Message text
+      <div className="field">
+        <label htmlFor="scan-text">Message text</label>
         <textarea
+          id="scan-text"
           value={text}
           onChange={(event) => setText(event.target.value)}
-          maxLength={10000}
+          maxLength={MAX_TEXT_LENGTH}
           rows={7}
           placeholder="Paste the message exactly as received"
+          aria-describedby="scan-text-hint"
         />
-        <span className="field-hint">{text.length.toLocaleString()} / 10,000 characters</span>
-      </label>
+        <span className="field-hint" id="scan-text-hint">
+          {text.length.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()} characters
+        </span>
+      </div>
 
-      <label>
-        URLs
+      <div className="field">
+        <label htmlFor="scan-urls">URLs</label>
         <textarea
+          id="scan-urls"
           value={urls}
           onChange={(event) => setUrls(event.target.value)}
           rows={3}
-          placeholder="One URL per line, up to five"
+          placeholder={`One URL per line, up to ${MAX_URLS}`}
+          aria-describedby="scan-urls-hint"
         />
-        <span className="field-hint">The gateway validates URL strings without dereferencing them.</span>
-      </label>
+        <span className="field-hint" id="scan-urls-hint">
+          Links are checked as text only and are never opened.
+        </span>
+      </div>
 
-      <label>
-        Your sender ID in the supplied history
+      <div className="field">
+        <label htmlFor="scan-sender">Your sender ID in the supplied history</label>
         <input
+          id="scan-sender"
           value={senderId}
           onChange={(event) => setSenderId(event.target.value)}
           maxLength={128}
           placeholder="Optional, used to exclude your own messages from sender rules"
         />
-      </label>
+      </div>
 
       <ConversationEditor messages={messages} onChange={setMessages} />
 

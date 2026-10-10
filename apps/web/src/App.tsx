@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { analyze } from "./api/analysis";
-import { IngestionStatus } from "./features/ingestion/IngestionStatus";
+import { IngestionPanel } from "./features/ingestion/IngestionPanel";
 import { ResultPanel } from "./features/results/ResultPanel";
 import { ScanForm } from "./features/scan/ScanForm";
 import type { AnalysisRequest, AnalysisResponse } from "./types/analysis";
@@ -51,7 +51,7 @@ export default function App() {
               <p>Results will show category, coverage, exact evidence, limitations, and the next safe action.</p>
             </section>
           )}
-          <IngestionStatus />
+          <IngestionPanel busy={busy} onSubmit={submit} />
         </aside>
       </div>
     </main>
