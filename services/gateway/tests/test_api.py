@@ -476,5 +476,5 @@ async def test_readiness_is_independent_from_liveness() -> None:
 async def test_extract_is_explicitly_unavailable() -> None:
     app = create_app(Settings(demo_mode=True))
     response = await request(app, "POST", "/v1/extract")
-    assert response.status_code == 503
+    assert response.status_code == 415
     assert response.json()["status"] == "unavailable"

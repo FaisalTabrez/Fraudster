@@ -1,13 +1,22 @@
 import { useState } from "react";
 
 import { analyze } from "./api/analysis";
-import { IngestionStatus } from "./features/ingestion/IngestionStatus";
+import { Icon } from "./components/Icon";
+import { LogoMark } from "./components/Logo";
+import { IngestionPanel } from "./features/ingestion/IngestionPanel";
 import { ResultPanel } from "./features/results/ResultPanel";
 import { ScanForm } from "./features/scan/ScanForm";
 import type { AnalysisRequest, AnalysisResponse } from "./types/analysis";
 
+// The result is kept with the exact request it answers, so evidence message IDs resolve
+// against what was analysed even if the form is edited afterwards.
+interface Analysis {
+  request: AnalysisRequest;
+  result: AnalysisResponse;
+}
+
 export default function App() {
-  const [result, setResult] = useState<AnalysisResponse | null>(null);
+  const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -15,9 +24,9 @@ export default function App() {
     setBusy(true);
     setError("");
     try {
-      setResult(await analyze(payload));
+      setAnalysis({ request: payload, result: await analyze(payload) });
     } catch (requestError) {
-      setResult(null);
+      setAnalysis(null);
       setError(requestError instanceof Error ? requestError.message : "Analysis could not be completed.");
     } finally {
       setBusy(false);
@@ -25,35 +34,48 @@ export default function App() {
   };
 
   return (
-    <main>
-      <header className="hero">
-        <div className="hero-mark" aria-hidden="true">F</div>
-        <div>
-          <span className="eyebrow">Fraudster prototype</span>
-          <h1>Explain the warning before asking for trust</h1>
-          <p>
-            Analyze pasted text, URL strings, and only the conversation history you choose to provide.
-            Coverage gaps stay visible instead of becoming a zero-risk score.
-          </p>
+    <div className="fr app">
+      <header className="fr-header app-header">
+        <div className="fr-brand">
+          <LogoMark size={40} />
+          <span className="wordmark">Fraudster</span>
         </div>
       </header>
 
-      <div className="workspace">
-        <ScanForm busy={busy} onSubmit={submit} />
-        <aside className="result-column">
-          {error && <p className="request-error" role="alert">{error}</p>}
-          {result ? (
-            <ResultPanel result={result} />
-          ) : (
-            <section className="empty-result">
-              <span className="eyebrow">Evidence-first output</span>
-              <h2>No analysis yet</h2>
-              <p>Results will show category, coverage, exact evidence, limitations, and the next safe action.</p>
-            </section>
-          )}
-          <IngestionStatus />
-        </aside>
-      </div>
-    </main>
+      <main className="app-main">
+        <div className="app-intro">
+          <h1 className="page-title">Check it before you act on it.</h1>
+          <p className="lead">
+            Paste a message, a link or a conversation. You get what to do next, the evidence, and a plain account of
+            what could not be checked.
+          </p>
+        </div>
+
+        <div className="app-grid">
+          <ScanForm busy={busy} onSubmit={submit} />
+
+          <section className="app-result" aria-label="Result">
+            {error && (
+              <p className="fr-banner fr-banner--unavailable" role="alert">
+                <Icon name="coverage-unavailable" />
+                {error}
+              </p>
+            )}
+            {analysis ? (
+              <ResultPanel result={analysis.result} messages={analysis.request.messages} />
+            ) : (
+              <div className="fr-card empty-result">
+                <p className="fr-eyebrow">Step 2</p>
+                <h2 className="fr-h2">No analysis yet</h2>
+                <p className="lead">
+                  Your result appears here: what to do now, the strongest evidence, what we checked, and the limits.
+                </p>
+              </div>
+            )}
+            <IngestionPanel busy={busy} onSubmit={submit} />
+          </section>
+        </div>
+      </main>
+    </div>
   );
 }

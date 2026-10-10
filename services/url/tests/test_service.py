@@ -11,6 +11,7 @@ import pytest
 from services.gateway.app.models import ModuleResult
 from services.url.app import detector as detector_module
 from services.url.app.main import create_app
+from services.url.app.upstream.classify import classify
 from services.url.app.upstream.features import FEATURE_NAMES, extract_features
 from services.url.app.upstream.model import load_model
 
@@ -40,6 +41,8 @@ async def test_url_service_is_ready_and_returns_input_dependent_results() -> Non
     assert high["raw_score_type"] == "upstream_blended_score_0_100"
     assert high["fixture_generated"] is False
     assert high["evidence"][0]["quote"] == "http://192.168.1.10/verify"
+    assert any(item["indicator_type"] == "url_feature_has_ip_host" and
+               item["observed_value"] == 1.0 for item in high["evidence"])
     assert "not a safety guarantee" in high["detail"]
 
 
@@ -120,8 +123,8 @@ async def test_maximum_length_and_duplicate_urls_keep_valid_unique_evidence() ->
     assert response.status_code == 200
     body = response.json()
     ModuleResult.model_validate(body)
-    assert len(body["evidence"]) == 2
-    assert len({item["id"] for item in body["evidence"]}) == 2
+    assert len(body["evidence"]) > 2
+    assert len({item["id"] for item in body["evidence"]}) == len(body["evidence"])
     assert all(item["quote"] == url[:2000] for item in body["evidence"])
 
 
@@ -145,5 +148,91 @@ async def test_valid_unicode_scalar_url_is_still_accepted(url: str) -> None:
     response = await request(
         create_app(), "POST", "/predict", json={"urls": [url]},
     )
+    assert response.status_code == 200
+    ModuleResult.model_validate(response.json())
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("url", "feature", "value"),
+    [
+        ("https://github.com/user/repo", "path_length", 10.0),
+        ("example.com/path", "is_https", 0.0),
+        ("http://192.168.1.10/verify", "has_ip_host", 1.0),
+        ("http://xn--pple-43d.com", "has_punycode", 1.0),
+        ("https://bit.ly/abc", "is_shortener", 1.0),
+    ],
+)
+async def test_edge_cases_expose_observed_features(
+    url: str, feature: str, value: float,
+) -> None:
+    response = await request(create_app(), "POST", "/predict", json={"urls": [url]})
+    assert response.status_code == 200
+    body = response.json()
+    ModuleResult.model_validate(body)
+    observations = {item["indicator_type"]: item for item in body["evidence"]}
+    assert observations[f"url_feature_{feature}"]["observed_value"] == value
+    assert observations[f"url_feature_{feature}"]["observed_value"] == extract_features(url)[feature]
+    assert all(item["quote"] == url for item in body["evidence"])
+    if url == "https://github.com/user/repo":
+        assert body["verdict"] != "suspected_scam"
+        assert "not a safety guarantee" in body["detail"]
+
+
+@pytest.mark.asyncio
+async def test_score_types_have_distinct_names_and_actual_values() -> None:
+    url = "http://safe.com@evil.xyz/login"
+    response = await request(create_app(), "POST", "/predict", json={"urls": [url]})
+    assert response.status_code == 200
+    body = response.json()
+    result = classify(url, model=load_model())
+    observations = {item["indicator_type"]: item["observed_value"] for item in body["evidence"]}
+    assert observations["upstream_heuristic_score_0_100"] == result.heuristic_score
+    assert observations["upstream_model_output_0_1"] == result.ml_probability
+    assert observations["upstream_blended_score_0_100"] == result.final_score == body["score"]
+    assert observations["url_feature_has_at_symbol"] == result.features["has_at_symbol"]
+    assert all(
+        observations[f"url_model_feature_{contribution.name}"] == contribution.value
+        for contribution in result.contributions
+    )
+    assert all(item["source_module"] == "url" for item in body["evidence"])
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("url", [
+    "http://", "https:///missing-host", "ftp://example.com", "javascript:alert(1)",
+    "http://example.com:abc", "https://example.com:65536", "http://[not-ipv6]/",
+    "http://[::1]bad/path", "http://[::1]:/", "https://example.com/path with space",
+    "https://evil.xyz\\google.com/login", "https://example.com\\path",
+])
+async def test_malformed_urls_are_rejected_without_echo(url: str) -> None:
+    response = await request(create_app(), "POST", "/predict", json={"urls": [url]})
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Invalid URL request."}
+    assert url not in response.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("url", [
+    "https://evil\u3002xyz/login", "https://evil\uff0exyz/login",
+    "https://evil\uff61xyz/login", "https://evil%2exyz/login",
+    "https://%65vil.xyz/login",
+])
+async def test_browser_normalized_hosts_are_rejected_before_classification(
+    url: str, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def forbid_classification(*_args, **_kwargs):
+        raise AssertionError("Browser-normalized host reached the classifier")
+
+    monkeypatch.setattr(detector_module, "classify", forbid_classification)
+    response = await request(create_app(), "POST", "/predict", json={"urls": [url]})
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Invalid URL request."}
+    assert url not in response.text
+
+
+@pytest.mark.asyncio
+async def test_valid_ipv6_literal_remains_supported() -> None:
+    response = await request(create_app(), "POST", "/predict", json={"urls": ["http://[::1]:8080/path"]})
     assert response.status_code == 200
     ModuleResult.model_validate(response.json())
