@@ -74,8 +74,8 @@ Task-started services are stopped after verification.
 
 Main has the reviewed gateway, text adapters and string-only URL adapter/evidence.
 Text requires provider configuration; paid live text and a configured live stack
-were not exercised. PR #22 remains draft pending owner reapproval and configured
-live-stack verification. All fixture outputs stay Demo data and aggregate risk_score stays
+were not exercised at the initial pass. PR #22 was then draft pending owner reapproval and configured
+live-stack verification (see the later merge/follow-up status below). All fixture outputs stay Demo data and aggregate risk_score stays
 null. No upstream implementation/model binary or private message is committed.
 
 English OCR only; errors require review/correction. Single QR codes supported;
