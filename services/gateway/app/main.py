@@ -28,12 +28,20 @@ def create_app(settings: Settings | None = None, detectors: DetectorClients | No
     async def ready(response: Response) -> dict[str, object]:
         if resolved.demo_mode:
             return {"status": "ready", "ready": True, "mode": "fixture"}
-        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        detectors_state = await app.state.detectors.readiness()
+        reasons = [
+            f"{name} detector not ready ({state['state']})"
+            for name, state in detectors_state.items()
+            if not state["ready"]
+        ]
+        if reasons:
+            response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         return {
-            "status": "not_ready",
-            "ready": False,
+            "status": "not_ready" if reasons else "ready",
+            "ready": not reasons,
             "mode": "live",
-            "reasons": ["text and URL adapters are scaffolded but not installed"],
+            "detectors": detectors_state,
+            "reasons": reasons,
         }
 
     return app

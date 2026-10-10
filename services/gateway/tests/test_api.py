@@ -463,13 +463,55 @@ async def test_blank_top_level_text_is_not_an_applicable_check_when_url_is_suppl
     assert response.json()["coverage"]["url"] == "complete"
 
 
+class ReadinessClients(UnavailableClients):
+    def __init__(self, text_ready: bool, url_ready: bool) -> None:
+        self.state = {
+            "text": {"ready": text_ready, "state": "ready" if text_ready else "not_configured"},
+            "url": {"ready": url_ready, "state": "ready" if url_ready else "unavailable"},
+        }
+
+    async def readiness(self) -> dict[str, dict[str, object]]:
+        return self.state
+
+
 @pytest.mark.asyncio
 async def test_readiness_is_independent_from_liveness() -> None:
-    app = create_app(Settings(demo_mode=False))
+    # Default detector URLs are unreachable here, so live mode is not ready but still live.
+    app = create_app(Settings(demo_mode=False, analysis_timeout_seconds=0.5))
     assert (await request(app, "GET", "/health/live")).status_code == 200
     ready = await request(app, "GET", "/health/ready")
     assert ready.status_code == 503
-    assert ready.json()["ready"] is False
+    body = ready.json()
+    assert body["ready"] is False
+    assert body["detectors"]["text"]["ready"] is False
+    assert body["detectors"]["text"]["state"] in {"unreachable", "timeout"}
+    assert len(body["reasons"]) == 2
+
+
+@pytest.mark.asyncio
+async def test_readiness_reports_per_detector_state() -> None:
+    app = create_app(Settings(demo_mode=False), ReadinessClients(text_ready=False, url_ready=True))
+    ready = await request(app, "GET", "/health/ready")
+    assert ready.status_code == 503
+    body = ready.json()
+    assert body["reasons"] == ["text detector not ready (not_configured)"]
+    assert body["detectors"]["url"]["ready"] is True
+    assert (await request(app, "GET", "/health/live")).status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_readiness_is_200_when_every_detector_is_ready() -> None:
+    app = create_app(Settings(demo_mode=False), ReadinessClients(text_ready=True, url_ready=True))
+    ready = await request(app, "GET", "/health/ready")
+    assert ready.status_code == 200
+    assert ready.json()["ready"] is True and ready.json()["reasons"] == []
+
+
+@pytest.mark.asyncio
+async def test_fixture_readiness_ignores_detectors() -> None:
+    app = create_app(Settings(demo_mode=True), ReadinessClients(text_ready=False, url_ready=False))
+    ready = await request(app, "GET", "/health/ready")
+    assert ready.status_code == 200 and ready.json()["mode"] == "fixture"
 
 
 @pytest.mark.asyncio

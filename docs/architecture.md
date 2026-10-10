@@ -32,7 +32,7 @@ Conversation rules group supplied messages by sender. A warning can combine urge
 
 ## Availability policy
 
-Liveness means the process can answer. Readiness means the configured mode can produce the promised detector behavior. Live-mode detector shells are live but not ready. The Compose health chain uses liveness so the interface remains available to explain missing detection.
+Liveness means the process can answer. Readiness means the configured mode can produce the promised detector behavior. In live mode the gateway is ready only when every private detector reports ready (for example, the text adapter stays not ready until `TEXT_API_KEY` is configured). The Compose health chain uses liveness so the interface remains available to explain missing detection.
 
 Applicable modules run under a ten-second overall default deadline and smaller per-service timeouts. A completed module survives another module's timeout. One missing applicable module makes the response partial; all applicable detector modules unavailable makes it unavailable with unknown verdict and severity. Reputation is not run in the bootstrap.
 

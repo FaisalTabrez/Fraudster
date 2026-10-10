@@ -5,7 +5,7 @@
 - `POST /v1/analyze` accepts the frozen JSON request and returns the frozen analysis response.
 - `POST /v1/extract` accepts one PNG/JPEG multipart `file`, forwarding to optional private OCR. All extraction results use the existing extraction response shape.
 - `GET /health/live` reports a running process.
-- `GET /health/ready` returns HTTP 200 in fixture mode and HTTP 503 in the scaffolded live mode.
+- `GET /health/ready` returns HTTP 200 with `mode: "fixture"` in fixture mode. In live mode the gateway probes the private text and URL detectors' `/health/ready` with the detector timeout and returns per-detector `{ready, state}` under `detectors`: HTTP 200 only when every detector is ready, otherwise HTTP 503 with `reasons` naming each detector that is not ready (for example `text detector not ready (not_configured)`). Only detector status words are reported, never message text or provider responses. `/health/live` does not depend on detectors.
 
 The packaged browser calls these routes through the same-origin `/api` prefix. The prefix is deployment routing and is not part of the gateway route itself.
 
