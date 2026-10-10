@@ -46,11 +46,11 @@ export function IngestionPanel({ busy, onSubmit }: Props) {
     catch (failure) { reviewError = failure instanceof Error ? failure.message : "Unsupported content."; }
   }
 
-  return <section className="ingestion-status" aria-labelledby="ingestion-heading">
-    <h2 id="ingestion-heading">Screenshot and QR ingestion</h2>
+  return <section className="fr-card ingestion-status" aria-labelledby="ingestion-heading">
+    <h2 id="ingestion-heading" className="fr-h2">Screenshot and QR ingestion</h2>
     <p>Review content before analysis. QR images stay in this browser; screenshots are sent to optional OCR.
       Links are never opened. Payment recipients are not verified.</p>
-    <label>Image use
+    <label className="fr-field">Image use
       <select value={mode} disabled={working || busy} onChange={event => {
         generation.current++; setMode(event.target.value as typeof mode);
         setReview(null); setOriginal(""); setExtraction(null); setError("");
@@ -59,12 +59,12 @@ export function IngestionPanel({ busy, onSubmit }: Props) {
         <option value="qr">Local QR code</option>
       </select>
     </label>
-    <label>Upload PNG or JPEG (up to 5 MB)
+    <label className="fr-field">Upload PNG or JPEG (up to 5 MB)
       <input key={mode} type="file" accept="image/png,image/jpeg" disabled={working || busy}
         onChange={event => { void select(event.target.files?.[0]); event.target.value = ""; }} />
     </label>
     {working && <p role="status">{mode === "qr" ? "Decoding locally…" : "Extracting screenshot text…"}</p>}
-    {error && <p role="alert" className="form-error">{error}</p>}
+    {error && <p role="alert" className="fr-banner fr-banner--unavailable">{error}</p>}
     {review !== null && <>
       <details><summary>Original {mode === "qr" ? "decoded content" : "extracted text"}</summary><pre>{original}</pre></details>
       {extraction?.image && <>
@@ -75,12 +75,12 @@ export function IngestionPanel({ busy, onSubmit }: Props) {
           </li>)}</ul>
         </details>
       </>}
-      <label>Review and correct {mode === "qr" ? "decoded content" : "extracted text"}
+      <label className="fr-field">Review and correct {mode === "qr" ? "decoded content" : "extracted text"}
         <textarea rows={6} value={review} disabled={busy} onChange={event => setReview(event.target.value)} />
-        <span className="field-hint">{review.length.toLocaleString()} / 10,000 characters. Only reviewed content is analyzed.</span>
+        <span className="fr-hint">{review.length.toLocaleString()} / 10,000 characters. Only reviewed content is analyzed.</span>
       </label>
-      {reviewError && <p role="alert" className="form-error">{reviewError}</p>}
-      <button type="button" className="primary-button" disabled={busy || working || !!reviewError}
+      {reviewError && <p role="alert" className="fr-banner fr-banner--unavailable">{reviewError}</p>}
+      <button type="button" className="fr-btn fr-btn--primary fr-btn--block" disabled={busy || working || !!reviewError}
         onClick={() => { void onSubmit(reviewRequest(review, mode)); }}>
         Analyze reviewed content
       </button>
