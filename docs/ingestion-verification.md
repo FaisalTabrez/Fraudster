@@ -136,7 +136,15 @@ temporary compatibility wheels keep metadata consistent with the single selected
 runtime. A future public OCR deployment should also bound upload read time; the
 current private OCR is only fed a fully buffered, bounded gateway upload.
 
-**Still pending before leaving draft:** configured live text provider verification
-(no TEXT_API_KEY/TEXT_MODEL available), and review of the new proxy/integration
-follow-up. Earlier approvals apply to `f9517de`; they are not claimed as exact-head
-approval of subsequent changes. Issues remain open until a permitted merge.
+While these checks ran, Akhilesh integrated main and merged PR #22 at `44a4f72`
+on 2026-10-10. These proxy changes were not part of that merge and are a separate
+follow-up based on current main `58ef346`, preserving the new branding work.
+Issue #10 is implemented on main; #9 still needs this public-upload limit fix
+merged. Earlier source approvals do not approve this new follow-up.
+
+Configured paid text-provider verification remains unperformed in this session
+(no TEXT_API_KEY/TEXT_MODEL available). Both fixture integration and non-demo
+unavailable-text behavior were verified; missing text coverage stays unknown,
+not safe. No configured-provider performance claim is made. The isolated test
+containers and network were removed with `docker compose -p fraudster-pr22-review
+-f compose.yaml -f .venv/pr22-compose.yaml --profile ocr down`.
