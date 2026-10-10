@@ -39,12 +39,25 @@ export function ScanForm({ busy, onSubmit }: Props) {
       setLocalError(`URL ${longUrl + 1} is longer than ${MAX_URL_LENGTH.toLocaleString()} characters. Shorten it or remove it.`);
       return;
     }
+    const incomplete = messages.find((message) => !message.sender_id.trim() || !message.text.trim());
+    if (incomplete) {
+      setLocalError(`Message ${incomplete.id} needs both a sender ID and message text.`);
+      return;
+    }
     setLocalError("");
     await onSubmit({
       text: text.trim() || undefined,
       urls: parsedUrls,
-      messages,
-      sender_id: senderId.trim() || undefined,
+      // Fresh copies, so the submitted request is a snapshot that later edits cannot change.
+      // Sender IDs and message text are sent exactly as entered: the gateway compares sender
+      // IDs exactly, so trimming would merge whitespace-distinct senders or mis-match the
+      // protected sender. trim() above is only used to detect blank values.
+      messages: messages.map((message) => ({
+        id: message.id,
+        sender_id: message.sender_id,
+        text: message.text,
+      })),
+      sender_id: senderId.trim() ? senderId : undefined,
       source: messages.length && !text.trim() && !parsedUrls.length ? "conversation" : "manual",
     });
   };

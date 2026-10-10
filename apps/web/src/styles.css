@@ -40,9 +40,13 @@ input:focus, textarea:focus { border-color: #256750; box-shadow: 0 0 0 3px rgba(
 .field-hint { color: #748078; font-size: 0.82rem; font-weight: 450; }
 .conversation-editor { margin: 26px 0; padding: 20px; border: 1px solid #d6d9d2; border-radius: 16px; }
 .conversation-editor legend { padding: 0 8px; }
-.message-row { display: grid; grid-template-columns: minmax(110px, .42fr) minmax(180px, 1fr) auto; gap: 10px; align-items: end; padding-top: 14px; border-top: 1px solid #e5e7e2; }
-.message-row label { margin: 0; }
-.primary-button, .secondary-button, .ghost-button { border-radius: 999px; padding: 11px 18px; font-weight: 800; }
+.message-row { display: grid; grid-template-columns: minmax(110px, .42fr) minmax(180px, 1fr); gap: 4px 14px; align-items: start; padding-top: 14px; border-top: 1px solid #e5e7e2; }
+.message-row .field { margin: 8px 0 0; }
+.message-row-head { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.message-row code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.message-count { margin: 14px 0; }
+.secondary-button[aria-disabled="true"] { cursor: not-allowed; opacity: 0.6; }
+.primary-button, .secondary-button, .ghost-button { min-height: 44px; border-radius: 999px; padding: 11px 18px; font-weight: 800; }
 .primary-button { width: 100%; border: 1px solid #183f34; background: #183f34; color: white; padding: 15px 22px; }
 .primary-button:hover { background: #235b4b; }
 .secondary-button { border: 1px solid #9bb4aa; background: #eef5f1; color: #204f40; }
@@ -79,6 +83,8 @@ input:focus, textarea:focus { border-color: #256750; box-shadow: 0 0 0 3px rgba(
 .evidence-card p { margin-bottom: 8px; line-height: 1.45; }
 .evidence-card p:last-child { margin-bottom: 0; }
 .evidence-card blockquote { margin: 12px 0; color: #26362f; font-family: Georgia, "Times New Roman", serif; font-size: 1.05rem; line-height: 1.45; }
+.evidence-card .message-ref { margin-bottom: 4px; }
+.evidence-card .source-message { margin: 4px 0 10px; padding-left: 12px; border-left: 3px solid #d6d9d2; color: #4a5a52; font-family: inherit; font-size: .92rem; overflow-wrap: anywhere; }
 .evidence-meta { display: flex; gap: 7px; flex-wrap: wrap; }
 .evidence-meta span { border-radius: 999px; background: #eef0ec; padding: 4px 8px; color: #59655f; font-size: .69rem; font-weight: 800; text-transform: uppercase; }
 .limitations { padding-left: 20px; color: #5f6863; line-height: 1.5; }
