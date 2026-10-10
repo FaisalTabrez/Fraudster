@@ -6,8 +6,15 @@ import { ResultPanel } from "./features/results/ResultPanel";
 import { ScanForm } from "./features/scan/ScanForm";
 import type { AnalysisRequest, AnalysisResponse } from "./types/analysis";
 
+// The result is kept with the exact request it answers, so evidence message IDs resolve
+// against what was analysed even if the form is edited afterwards.
+interface Analysis {
+  request: AnalysisRequest;
+  result: AnalysisResponse;
+}
+
 export default function App() {
-  const [result, setResult] = useState<AnalysisResponse | null>(null);
+  const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -15,9 +22,9 @@ export default function App() {
     setBusy(true);
     setError("");
     try {
-      setResult(await analyze(payload));
+      setAnalysis({ request: payload, result: await analyze(payload) });
     } catch (requestError) {
-      setResult(null);
+      setAnalysis(null);
       setError(requestError instanceof Error ? requestError.message : "Analysis could not be completed.");
     } finally {
       setBusy(false);
@@ -42,8 +49,8 @@ export default function App() {
         <ScanForm busy={busy} onSubmit={submit} />
         <aside className="result-column">
           {error && <p className="request-error" role="alert">{error}</p>}
-          {result ? (
-            <ResultPanel result={result} />
+          {analysis ? (
+            <ResultPanel result={analysis.result} messages={analysis.request.messages} />
           ) : (
             <section className="empty-result">
               <span className="eyebrow">Evidence-first output</span>

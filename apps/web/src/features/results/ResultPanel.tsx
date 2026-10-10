@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import type { AnalysisResponse } from "../../types/analysis";
+import type { AnalysisResponse, ConversationMessage } from "../../types/analysis";
 import {
   coverageLabel,
   coverageName,
@@ -33,7 +33,26 @@ function StatusBanner({ result }: { result: AnalysisResponse }) {
   );
 }
 
-export function ResultPanel({ result }: { result: AnalysisResponse }) {
+function MessageReference({ id, quote, messages }: { id: string; quote?: string | null; messages: ConversationMessage[] }) {
+  const message = messages.find((candidate) => candidate.id === id);
+  if (!message) {
+    return <p className="message-ref">Message <code>{id}</code> is not part of the submitted conversation.</p>;
+  }
+  return (
+    <>
+      <p className="message-ref"><strong>Message <code>{id}</code> - {message.sender_id}</strong></p>
+      {quote !== message.text && <blockquote className="source-message">{message.text}</blockquote>}
+    </>
+  );
+}
+
+interface ResultPanelProps {
+  result: AnalysisResponse;
+  /** The messages that were actually submitted, used to resolve evidence message IDs. */
+  messages?: ConversationMessage[];
+}
+
+export function ResultPanel({ result, messages = [] }: ResultPanelProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   // Move focus to the new result so keyboard and screen-reader users land on it.
@@ -100,7 +119,7 @@ export function ResultPanel({ result }: { result: AnalysisResponse }) {
               {item.observed_value !== undefined && item.observed_value !== null && (
                 <p><strong>Observed:</strong> <code>{String(item.observed_value)}</code></p>
               )}
-              {item.message_id && <p><strong>Message ID:</strong> {item.message_id}</p>}
+              {item.message_id && <MessageReference id={item.message_id} quote={item.quote} messages={messages} />}
               <p>{item.explanation}</p>
             </article>
           ))}
