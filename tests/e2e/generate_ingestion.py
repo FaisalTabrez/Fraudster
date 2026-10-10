@@ -15,6 +15,7 @@ image.save(root / 'synthetic-ocr.png')
 Image.new('RGB', (100, 100), 'white').save(root / 'synthetic-no-code.png')
 (root / 'synthetic-invalid.png').write_bytes(b'Not a real PNG')
 for name, value in [('url', 'https://example.test/qr'), ('text', 'Synthetic plain text'),
+                    ('note', 'Note:hello'), ('meeting', 'Meeting:10am'),
                     ('payment', 'upi://pay?pa=synthetic@example')]:
     qrcode.make(value).save(root / f'synthetic-qr-{name}.png')
 print('Synthetic OCR/QR smoke inputs generated under ignored .venv/ingestion-fixtures.')

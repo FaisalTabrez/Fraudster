@@ -49,23 +49,102 @@
     {
       "name": "PaddleOCR",
       "repository_url": "https://github.com/PaddlePaddle/PaddleOCR",
-      "immutable_commit_or_release": "v2.9.1 (PyPI paddleocr==2.9.1)",
+      "immutable_commit_or_release": "07603421c20a96bb94bb87d0c4211032527ae706",
       "inspected_license": "Apache-2.0",
       "license_verification": "Apache-2.0 LICENSE in installed paddleocr 2.9.1 distribution",
       "copied_file_list": [
         "third_party/licenses/PaddleOCR-2.9.1-LICENSE"
       ],
       "model_provenance": "Optional upstream en_PP-OCRv3_det_infer, en_PP-OCRv4_rec_infer and ch_ppocr_mobile_v2.0_cls_infer weights referenced by PaddleOCR 2.9.1. Explicit setup downloads to ignored services/ocr/models; no weights redistributed in Git.",
-      "local_changes": "Original CPU adapter and explicit download command; no upstream implementation copied.",
+      "local_changes": "Original CPU adapter/setup. Hash-verified upstream wheel repackaged locally with build tag 1fraudster: OpenCV dependency metadata replaced with headless-only; implementation bytes unchanged. Local wheels/models are temporary or ignored, never redistributed in Git.",
       "verification_notes": [
         "English recognition only in this configuration; PaddlePaddle CPU 2.6.2 and numpy 1.26.4 pinned.",
         "Service checks prepared files before constructing PaddleOCR; missing assets/dependencies are unavailable, never downloaded during requests."
+      ],
+      "previous_inspected_source_commit": "dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf",
+      "upstream_tag": "v2.9.1",
+      "package_artifact": {
+        "version": "2.9.1",
+        "filename": "paddleocr-2.9.1-py3-none-any.whl",
+        "url": "https://files.pythonhosted.org/packages/ff/92/e92fd1bc67c562b653f0eff37379e96b77c7e318c90a637e6f586d4eb532/paddleocr-2.9.1-py3-none-any.whl",
+        "sha256": "73fa76fa3be118d8469141ad72b2665f30795386bdd87b2bde5ff7ee3069e1be"
+      },
+      "model_artifacts": [
+        {
+          "name": "en_PP-OCRv3_det_infer",
+          "upstream_release": "PP-OCRv3/english",
+          "url": "https://paddleocr.bj.bcebos.com/PP-OCRv3/english/en_PP-OCRv3_det_infer.tar",
+          "archive_sha256": "e740eb522521827cc83da3ba33e1c70ccfd9b3cf7d9a24a420ce4ca5ebb8794f",
+          "files": [
+            {
+              "archive_member": "en_PP-OCRv3_det_infer/inference.pdiparams.info",
+              "path": "det/inference.pdiparams.info",
+              "sha256": "2fe414d9eadf914bf44e3f9ba212988a6f26f364e4f87c6d0af57438ffffc0c4"
+            },
+            {
+              "archive_member": "en_PP-OCRv3_det_infer/inference.pdiparams",
+              "path": "det/inference.pdiparams",
+              "sha256": "83676ec730627ab4502f401410a4b6a3ce1c0bb98fa249b71db055b6bddae051"
+            },
+            {
+              "archive_member": "en_PP-OCRv3_det_infer/inference.pdmodel",
+              "path": "det/inference.pdmodel",
+              "sha256": "c4bfb1b05d9d1d5a760801eaf6d20180ef7e47bcc675fb17d1f3a89da5fef427"
+            }
+          ]
+        },
+        {
+          "name": "en_PP-OCRv4_rec_infer",
+          "upstream_release": "PP-OCRv4/english",
+          "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/english/en_PP-OCRv4_rec_infer.tar",
+          "archive_sha256": "d5ae153a6fbdacd5776543d3194c4258154ed6f83467d55de1cc345f7dd20322",
+          "files": [
+            {
+              "archive_member": "en_PP-OCRv4_rec_infer/inference.pdiparams.info",
+              "path": "rec/inference.pdiparams.info",
+              "sha256": "710d9f3d7c503067ae708f4bc3adc6973c0d6391adb7a1470c36eb70da6b5b83"
+            },
+            {
+              "archive_member": "en_PP-OCRv4_rec_infer/inference.pdmodel",
+              "path": "rec/inference.pdmodel",
+              "sha256": "85b952f05f709af259cfe4254012aa7208bef0998f71f57a15495446f25ccd43"
+            },
+            {
+              "archive_member": "en_PP-OCRv4_rec_infer/inference.pdiparams",
+              "path": "rec/inference.pdiparams",
+              "sha256": "75f64a1ffb70c56b7a25655963ca16f5bf3286202e3f52ac972bee05cdee2f56"
+            }
+          ]
+        },
+        {
+          "name": "ch_ppocr_mobile_v2.0_cls_infer",
+          "upstream_release": "dygraph_v2.0/ch",
+          "url": "https://paddleocr.bj.bcebos.com/dygraph_v2.0/ch/ch_ppocr_mobile_v2.0_cls_infer.tar",
+          "archive_sha256": "507352585040d035da3b1e6374694ad679a850acb0a36a8d0d47984176357717",
+          "files": [
+            {
+              "archive_member": "ch_ppocr_mobile_v2.0_cls_infer/inference.pdiparams.info",
+              "path": "cls/inference.pdiparams.info",
+              "sha256": "ee0c2eaa4c09814802bf520c01dfdbc1345dc2879dc9e67424d32c7b0ee88e59"
+            },
+            {
+              "archive_member": "ch_ppocr_mobile_v2.0_cls_infer/inference.pdmodel",
+              "path": "cls/inference.pdmodel",
+              "sha256": "3c4337ec61722a20b1dca2e5bfaffc313c0592bc89ad6e0d45168224186f6683"
+            },
+            {
+              "archive_member": "ch_ppocr_mobile_v2.0_cls_infer/inference.pdiparams",
+              "path": "cls/inference.pdiparams",
+              "sha256": "d1efda1b80e174b4fcb168a035ac96c1af4938892bd86a55f300a6027105d08c"
+            }
+          ]
+        }
       ]
     },
     {
       "name": "zxing-js browser",
       "repository_url": "https://github.com/zxing-js/browser",
-      "immutable_commit_or_release": "npm @zxing/browser@0.2.1 (lockfile integrity recorded)",
+      "immutable_commit_or_release": "9ad027d88d4533bd6d29f9d8d7e517e23cd361ff",
       "inspected_license": "MIT",
       "license_verification": "MIT LICENSE in installed @zxing/browser 0.2.1 distribution",
       "copied_file_list": [
@@ -76,12 +155,18 @@
       "verification_notes": [
         "Pinned peer @zxing/library 0.23.0 satisfies ^0.23.0.",
         "Decoder receives local image elements only, never decoded URLs."
-      ]
+      ],
+      "upstream_tag": "v0.2.1",
+      "package_artifact": {
+        "version": "0.2.1",
+        "resolved": "https://registry.npmjs.org/@zxing/browser/-/browser-0.2.1.tgz",
+        "integrity": "sha512-92pVfVDUXbc15xu9vIEmhNyqIEASMEkDF92CwT6T+7sg2EHXJRktH9CQKoQSXe51UtbNsj+Fm09H/JBWHMs/Sw=="
+      }
     },
     {
       "name": "zxing-js library",
       "repository_url": "https://github.com/zxing-js/library",
-      "immutable_commit_or_release": "npm @zxing/library@0.23.0 (lockfile integrity recorded)",
+      "immutable_commit_or_release": "1722d0744fb5e8b47aebfbeb2b648e17c95e8595",
       "inspected_license": "Apache-2.0",
       "license_verification": "Apache-2.0 LICENSE in installed package",
       "copied_file_list": [
@@ -91,7 +176,13 @@
       "local_changes": "Dependency only; no upstream implementation copied.",
       "verification_notes": [
         "Used by browser QR decoder and synthetic encode/decode tests."
-      ]
+      ],
+      "upstream_tag": "v0.23.0",
+      "package_artifact": {
+        "version": "0.23.0",
+        "resolved": "https://registry.npmjs.org/@zxing/library/-/library-0.23.0.tgz",
+        "integrity": "sha512-6fkkoFwP8CHxl6ugnPsj74PLJgX2iRv5zczGAyt5OBzQgxFhuhF0NCEc4t4OvSr8xAv2MRLlI0Iu9ZGDZQ2urA=="
+      }
     },
     {
       "name": "PaddlePaddle CPU",
@@ -106,6 +197,27 @@
       "local_changes": "Optional inference dependency only; no implementation copied.",
       "verification_notes": [
         "CPU package; no CUDA or GPU runtime required."
+      ]
+    },
+    {
+      "name": "imgaug",
+      "repository_url": "https://github.com/aleju/imgaug",
+      "immutable_commit_or_release": "0.4.0",
+      "inspected_license": "MIT",
+      "license_verification": "MIT LICENSE in installed imgaug 0.4.0 distribution",
+      "copied_file_list": [
+        "third_party/licenses/imgaug-0.4.0-LICENSE"
+      ],
+      "model_provenance": null,
+      "package_artifact": {
+        "version": "0.4.0",
+        "filename": "imgaug-0.4.0-py2.py3-none-any.whl",
+        "url": "https://files.pythonhosted.org/packages/66/b1/af3142c4a85cba6da9f4ebb5ff4e21e2616309552caca5e8acefe9840622/imgaug-0.4.0-py2.py3-none-any.whl",
+        "sha256": "ce61e65b4eb7405fc62c1b0a79d2fa92fd47f763aaecb65152d29243592111f9"
+      },
+      "local_changes": "Hash-verified upstream wheel repackaged locally with build tag 1fraudster: OpenCV dependency metadata replaced with headless-only; implementation bytes unchanged. No wheel/source redistributed in Git.",
+      "verification_notes": [
+        "Installer verifies source SHA-256 before repackaging and regenerates wheel RECORD."
       ]
     }
   ]

@@ -28,14 +28,14 @@ try {
   assert.match(await correction.inputValue(), /synthetic/i);
   assert.equal(requests.length, 0);
   await correction.fill('Urgent synthetic message: send your OTP to verify.');
-  await button.click();
+  await Promise.all([page.waitForResponse(response => response.url().endsWith('/api/v1/analyze') && response.ok()), button.click()]);
   await page.getByText('Demo data', { exact: true }).waitFor();
   assert.equal(requests[0].source, 'screenshot');
   assert.equal(requests[0].text, 'Urgent synthetic message: send your OTP to verify.');
   console.log('PASS real CPU OCR -> editable correction -> fixture analyze (Demo data)');
 
   await page.getByLabel('Image use').selectOption('qr');
-  for (const [kind, expected] of [['url', 'https://example.test/qr'], ['text', 'Synthetic plain text']]) {
+  for (const [kind, expected] of [['url', 'https://example.test/qr'], ['text', 'Synthetic plain text'], ['note', 'Note:hello'], ['meeting', 'Meeting:10am']]) {
     const before = requests.length;
     await upload.setInputFiles(`.venv/ingestion-fixtures/synthetic-qr-${kind}.png`);
     const review = page.getByLabel(/Review and correct decoded content/);
@@ -43,8 +43,7 @@ try {
     assert.equal(await review.inputValue(), expected);
     assert.equal(requests.length, before);
     assert.equal(await page.getByRole('link').count(), 0);
-    await button.click();
-    await page.waitForResponse(response => response.url().endsWith('/api/v1/analyze') && response.ok());
+    await Promise.all([page.waitForResponse(response => response.url().endsWith('/api/v1/analyze') && response.ok()), button.click()]);
     assert.equal(requests.at(-1).source, 'qr');
     if (kind === 'url') assert.deepEqual(requests.at(-1).urls, [expected]);
     else assert.equal(requests.at(-1).text, expected);

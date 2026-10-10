@@ -123,6 +123,6 @@ Work starts from this shared bootstrap baseline. The agreed branches are `feat/g
 
 Main includes gateway protections (PR #21), text adapter/failure handling (PRs #19/#17), and the string-only URL adapter/evidence (PRs #25/#26). Text still needs provider configuration; paid live text inference and overall live readiness are not claimed by this ingestion PR.
 
-OCR/QR ingestion uses the existing analysis contract. PNG/JPEG OCR limits are decimal 5 MB and 20 million pixels. Review text before submission; payment QR payloads are unsupported and no recipient is verified. The draft ingestion PR cannot claim live detector end-to-end readiness until P0 integration lands.
+OCR/QR ingestion uses the existing analysis contract. PNG/JPEG OCR limits are decimal 5 MB and 20 million pixels. Review text before submission; payment QR payloads are unsupported and no recipient is verified. The ingestion PR remains draft pending final owner review and verification of the configured live stack.
 
 See `third_party/manifest.json` before copying any upstream source or model. Do not copy upstream accuracy into team results.

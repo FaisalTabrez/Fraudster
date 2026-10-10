@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { extractScreenshot, reviewRequest, validateFile } from "./ingestion";
+import * as image from "./image";
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 describe("ingestion validation and transport", () => {
   it("enforces exact byte limit, rejects empty/unsupported files before any request", async () => {
@@ -15,6 +16,7 @@ describe("ingestion validation and transport", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
   it("only uploads to the same-origin gateway and preserves clear unavailable states", async () => {
+    vi.spyOn(image, "withLocalImage").mockResolvedValue(undefined);
     const fetch = vi.fn().mockResolvedValue({ ok: false, json: async () => ({ status: "unavailable", detail: "OCR is unavailable" }) });
     vi.stubGlobal("fetch", fetch);
     await expect(extractScreenshot(new File(["test"], "test.png", { type: "image/png" }))).rejects.toThrow("OCR is unavailable");
@@ -30,5 +32,21 @@ describe("ingestion validation and transport", () => {
     expect(reviewRequest("synthetic plain text", "qr")).toEqual({ text: "synthetic plain text", urls: [], messages: [], source: "qr" });
     expect(reviewRequest("corrected text", "screenshot").source).toBe("screenshot");
     expect(reviewRequest("Note: synthetic plain text", "qr").text).toBe("Note: synthetic plain text");
+  });
+  it.each(["Note:hello", "Meeting:10am", "Subject:synthetic notice"])("preserves ordinary colon-delimited text %s", content => {
+    const fetch = vi.fn(); vi.stubGlobal("fetch", fetch);
+    expect(reviewRequest(content, "qr")).toEqual({ text: content, urls: [], messages: [], source: "qr" });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it("rejects oversized screenshot dimensions before upload and releases the blob", async () => {
+    const local = { naturalWidth: 5000, naturalHeight: 4001, onload: null as null | (() => void),
+      onerror: null, removeAttribute: vi.fn(), set src(_value: string) { queueMicrotask(() => local.onload?.()); } };
+    vi.stubGlobal("Image", class { constructor() { return local; } });
+    const revoke = vi.fn();
+    vi.stubGlobal("URL", class extends URL { static createObjectURL = () => "blob:synthetic"; static revokeObjectURL = revoke; });
+    const fetch = vi.fn(); vi.stubGlobal("fetch", fetch);
+    await expect(extractScreenshot(new File(["synthetic"], "test.png", { type: "image/png" }))).rejects.toThrow(/20 million/);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(revoke).toHaveBeenCalledWith("blob:synthetic");
   });
 });

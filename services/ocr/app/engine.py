@@ -28,7 +28,8 @@ class PaddleEngine:
 
 
 def verify_assets(root: Path):
-    fingerprints = json.loads(Path(__file__).with_name("model-assets.json").read_text())
+    artifacts = json.loads(Path(__file__).with_name("model-assets.json").read_text())["artifacts"]
+    fingerprints = {file["path"]: file["sha256"] for artifact in artifacts for file in artifact["files"]}
     for relative, expected in fingerprints.items():
         path = root / relative
         if not path.is_file():

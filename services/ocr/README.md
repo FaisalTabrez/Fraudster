@@ -14,7 +14,7 @@ each request. Images, text, and recognition output are not persisted or logged.
 
 - Python 3.11.17, Windows x64 (OS build 26200), CPU only; no CUDA required.
 - `paddleocr==2.9.1`, `paddlepaddle==2.6.2`, `numpy==1.26.4`,
-  OpenCV packages `4.10.0.84`, Pillow `11.3.0`, setuptools `75.8.0`.
+  **only** `opencv-python-headless==4.10.0.84`, Pillow `11.3.0`, setuptools `75.8.0`.
 - `lang=en`, `ocr_version=PP-OCRv4`, angle classification enabled, MKLDNN disabled,
   two CPU threads. The English v4 configuration uses the upstream
   **en_PP-OCRv3_det_infer** detector, **en_PP-OCRv4_rec_infer** recognizer, and
@@ -39,16 +39,31 @@ gateway or Python 3.13 URL adapter environment.
 
 ```powershell
 py -3.11 -m venv .venv-ocr
-.\.venv-ocr\Scripts\python.exe -m pip install -r services\ocr\requirements-model.txt
+.\.venv-ocr\Scripts\python.exe services\ocr\install_model.py
 $env:OCR_MODEL_DIR = (Join-Path (Get-Location) 'services\ocr\models')
 .\.venv-ocr\Scripts\python.exe -m services.ocr.app.prepare
 .\.venv-ocr\Scripts\python.exe -m services.ocr.verify_model
 .\.venv-ocr\Scripts\python.exe -m uvicorn services.ocr.app.main:app --host 127.0.0.1 --port 8003
 ```
 
-The explicit `prepare` command downloads three archives from Paddle's official
+Use a **fresh** environment. `install_model.py` downloads the exact official
+PaddleOCR 2.9.1 and imgaug 0.4.0 wheels in `runtime-wheels.json` and checks their
+SHA-256 hashes. Their upstream metadata requires overlapping GUI OpenCV wheels;
+the installer builds temporary compatibility wheels (`1fraudster` build tag)
+replacing only those requirements with the single headless distribution. It
+preserves implementation bytes, rebuilds RECORD, checks actual OpenCV distribution
+ownership and runs `pip check`. It does not modify installed packages in place.
+Use this command rather than installing the model requirements alone or mixing
+other OpenCV distributions into the environment. Docker uses the same installer.
+Sources, hashes and the metadata-only recipe are attributed in the manifest.
+
+The explicit `prepare` command downloads three **exact recorded** archives from Paddle's official
 `paddleocr.bj.bcebos.com` host on first use (about 16 MB total), then checks the
-six inference-file fingerprints in `app/model-assets.json`. Models are stored
+nine inference-file fingerprints in `app/model-assets.json`. That file and the
+third-party manifest record each upstream release path, exact archive URL,
+archive SHA-256, member-to-local-file mapping and extracted-file SHA-256. Setup
+does not use PaddleOCR's package-internal URL lookup; it verifies the archive
+before reading mapped members and never extracts arbitrary archive paths. Models are stored
 under the ignored `services/ocr/models/{det,rec,cls}` directories. Subsequent
 startup/request processing needs no model download. If fingerprints mismatch,
 OCR remains unavailable; investigate the upstream change rather than accepting
@@ -60,7 +75,13 @@ before launching it. Install the updated gateway requirements for its multipart
 parser. Neither OCR readiness nor missing assets prevents manual/QR analysis.
 The existing gateway analysis deadline also bounds the extraction HTTP call;
 slow inference becomes an explicit unavailable result. In-progress CPU work may
-finish after the caller times out; it never writes a result to disk.
+finish after the caller times out; it never writes a result to disk. The OCR
+service admits **one** request per process before reading/decode/inference, with
+**no waiting queue**. Excess requests get immediate contract-shaped 503 with
+`Retry-After: 1`. A cancelled/timed-out caller does not release that capacity
+until the actual worker finishes and closes the image. Retries cannot accumulate
+additional decoded images or CPU jobs. Deployment worker count multiplies the
+process capacity; do not increase it without budgeting CPU/memory.
 
 ## Docker setup
 
@@ -100,4 +121,6 @@ users must shorten oversized text themselves.
 PaddleOCR and PaddlePaddle are Apache-2.0 dependencies. Upstream LICENSE files are
 retained in `third_party/licenses/` and releases/model provenance are recorded in
 `third_party/manifest.json`. Integration code is original; no upstream
-implementation or weights are copied into the repository.
+implementation or weights are copied into the repository. The installer creates
+temporary PaddleOCR/imgaug compatibility wheels with dependency metadata changes
+only; upstream LICENSE notices, wheel hashes and that recipe are retained.

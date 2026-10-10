@@ -92,3 +92,16 @@ async def test_gateway_bounds_entire_body_before_multipart_parsing():
                                      headers={"Content-Type": "multipart/form-data; boundary=synthetic"})
     assert response.status_code == 413
     upstream.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_gateway_busy_response_is_explicit_without_relaying_upstream_detail():
+    def upstream(request):
+        return httpx.Response(503, headers={"Retry-After": "1"}, json={"status": "unavailable", "text": None,
+            "boxes": [], "image": None, "detail": "PRIVATE provider exception"})
+    app = gateway(httpx.MockTransport(upstream))
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post("/v1/extract", files={"file": ("image.png", png(), "image/png")})
+    assert response.status_code == 503 and response.headers["retry-after"] == "1"
+    assert "busy" in response.json()["detail"]
+    assert "PRIVATE" not in response.text

@@ -1,7 +1,7 @@
 import type { AnalysisRequest } from "../../types/analysis";
+import { validateFile, withLocalImage } from "./image";
 
-export const MAX_IMAGE_BYTES = 5_000_000;
-export const MAX_IMAGE_PIXELS = 20_000_000;
+export { MAX_IMAGE_BYTES, MAX_IMAGE_PIXELS, validateFile } from "./image";
 
 export interface ExtractionResponse {
   status: "complete" | "unavailable";
@@ -11,14 +11,11 @@ export interface ExtractionResponse {
   detail: string | null;
 }
 
-export function validateFile(file: File) {
-  if (!["image/png", "image/jpeg"].includes(file.type)) throw new Error("Only PNG and JPEG images are supported.");
-  if (!file.size) throw new Error("The image is empty.");
-  if (file.size > MAX_IMAGE_BYTES) throw new Error("Image exceeds the 5 MB upload limit.");
-}
-
 export async function extractScreenshot(file: File): Promise<ExtractionResponse> {
   validateFile(file);
+  // Discover dimensions locally before spending an upload; the server also
+  // validates headers before full decode, since browser checks are not trusted.
+  await withLocalImage(file, async () => undefined);
   const body = new FormData();
   body.append("file", file);
   let response: Response;
@@ -48,8 +45,7 @@ export function reviewRequest(value: string, source: "qr" | "screenshot"): Analy
   if (!text) throw new Error("Enter text to analyze after review.");
   if (text.length > 10_000) throw new Error("Reviewed content exceeds the 10,000 character analysis limit. Shorten it first.");
   if (source === "qr") {
-    if (/^[a-z][a-z0-9+.-]*:\S/i.test(text)
-        || /^(https?|upi|mailto|sms|smsto|tel|javascript|data|file|intent|wifi|mecard|matmsg):/i.test(text)) {
+    if (/^(https?|upi|mailto|sms|smsto|tel|javascript|data|file|intent|wifi|mecard|matmsg|ftp|ftps|sftp|bitcoin|ethereum|payto|geo|vcard):/i.test(text)) {
       if (!/^https?:\/\//i.test(text)) {
         throw new Error("Unsupported QR payload. Payment, contact, Wi-Fi and app links are not analyzed; no recipient has been verified.");
       }

@@ -108,8 +108,11 @@ def test_oversized_dimensions_rejected_before_verification_and_pixel_decode(monk
 
 def test_unreviewed_weights_rejected_before_paddle_import(tmp_path):
     from services.ocr.app.engine import verify_assets
-    directory = tmp_path / "det"
-    directory.mkdir()
-    (directory / "inference.pdiparams").write_bytes(b"synthetic unreviewed weights")
+    import json
+    from pathlib import Path
+    first_file = json.loads(Path("services/ocr/app/model-assets.json").read_text())["artifacts"][0]["files"][0]["path"]
+    target = tmp_path / first_file
+    target.parent.mkdir()
+    target.write_bytes(b"synthetic unreviewed weights")
     with pytest.raises(ValueError, match="fingerprint"):
         verify_assets(tmp_path)

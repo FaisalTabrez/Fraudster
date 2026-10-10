@@ -21,8 +21,9 @@ are locked. The browser dependency loads when local decoding is requested.
 The QR reader receives only an image created from a local blob URL; the URL and
 handlers are released after success/failure. No camera permission is used.
 
-Only static PNG/JPEG uploads up to decimal 5 MB are offered. QR images are checked
-for decoded dimensions before creating ZXing's pixel canvas (20 million pixels).
+Only static PNG/JPEG uploads up to decimal 5 MB are offered. Both screenshot and QR images are checked
+for decoded dimensions locally (20 million pixels) before uploading a screenshot
+or creating ZXing's pixel canvas. Temporary blob URLs are released on all paths.
 The browser must decode the image to discover dimensions; the OCR server enforces
 its dimension limit before pixel allocation. QR handling clearly reports invalid
 images, no readable code, empty/overlong content, malformed HTTP(S) URLs, credentials

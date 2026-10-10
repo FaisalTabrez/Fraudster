@@ -101,6 +101,10 @@ async def extract(request: Request):
                                415: "Only static PNG and JPEG images are supported.",
                                422: "Invalid image or no readable text extracted. Try another image or paste text.",
                                503: "OCR unavailable or extraction failed. You can still paste text manually."}[response.status_code])
-        return JSONResponse(result.model_dump(), status_code=response.status_code)
+        headers = None
+        if response.status_code == 503 and response.headers.get("retry-after") == "1":
+            result.detail = "OCR is busy. Try again after the current image finishes."
+            headers = {"Retry-After": "1"}
+        return JSONResponse(result.model_dump(), status_code=response.status_code, headers=headers)
     except (httpx.HTTPError, ValueError):
         return failure("OCR service is unavailable. You can still paste text manually.")

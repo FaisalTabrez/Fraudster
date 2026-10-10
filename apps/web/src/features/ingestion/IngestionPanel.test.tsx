@@ -88,4 +88,16 @@ describe("ingestion review", () => {
     expect(screen.queryByRole("button", { name: /Analyze reviewed/ })).not.toBeInTheDocument();
     await waitFor(() => expect(screen.getByLabelText(/Upload PNG/)).not.toBeDisabled());
   });
+  it.each(["Note:hello", "Meeting:10am"])("submits reviewed colon text %s without links", async text => {
+    const submit = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(decodeQr).mockResolvedValue(text);
+    render(<IngestionPanel busy={false} onSubmit={submit} />);
+    fireEvent.change(screen.getByLabelText("Image use"), { target: { value: "qr" } });
+    upload();
+    await screen.findByLabelText(/Review and correct decoded content/);
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(submit).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: /Analyze reviewed/ }));
+    expect(submit).toHaveBeenCalledWith({ text, urls: [], messages: [], source: "qr" });
+  });
 });
