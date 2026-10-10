@@ -42,4 +42,10 @@ python tests/e2e/upload_limit_smoke.py --base-url http://127.0.0.1:4174/api
 This pads the generated synthetic PNG to exactly 5,000,000 bytes, verifies OCR
 succeeds through the public proxy, and checks that one extra byte receives a
 contract-shaped 413 unavailable result. Nginx permits the gateway's bounded
-multipart envelope and streams requests instead of buffering uploads to disk.
+multipart envelope and streams extraction requests instead of buffering uploads
+to disk. The test also checks envelope-sized JSON 413 responses and that the
+analysis route retains its default 1 MiB proxy limit. Without a model, use
+`--expect-ocr-unavailable` to verify an honest 503 instead of extraction success.
+The fixture path is resolved from the repository, so the script can run from
+another directory. Missing fixtures produce a setup instruction. See
+`docs/ingestion-verification.md` for a complete portable Docker override example.
