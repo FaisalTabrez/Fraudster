@@ -31,3 +31,14 @@ no automatic analysis, unsupported payment payload, invalid/no-code images,
 cleared stale review, and no external browser requests. It saves a synthetic-only
 screenshot under ignored `.venv/`. This opt-in test is separate from model-free
 CI and does not require changing existing P0 checks.
+
+## API walkthrough
+
+`demo_walkthrough.py` replays the request-level steps of `docs/demo-script.md` against a running gateway and prints a table of expected and actual results. It needs only the standard library.
+
+```powershell
+py -3 tests\e2e\demo_walkthrough.py --base-url http://127.0.0.1:8000 --mode fixture      # gateway with DEMO_MODE=true
+py -3 tests\e2e\demo_walkthrough.py --base-url http://127.0.0.1:8000 --mode unavailable  # DEMO_MODE=false, no detectors
+```
+
+It does not drive the browser, so the Demo data badge, evidence cards and OCR/QR steps still need the Playwright smoke above or a person.

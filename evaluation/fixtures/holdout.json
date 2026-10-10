@@ -1,0 +1,386 @@
+{
+  "metadata": {
+    "split": "holdout",
+    "version": "0.2.0",
+    "synthetic": true,
+    "provenance": "All scenarios are authored synthetic examples. No real message, person, brand, domain or phone number is used; URLs use reserved .test/.example hosts or documentation IP ranges.",
+    "drafted_by": "Drafted with Claude (AI assistant) for @devisripriyanam. Labels have not been reviewed by two teammates.",
+    "freeze": {
+      "status": "draft",
+      "required_reviewers": 2,
+      "frozen_at": null
+    },
+    "label_policy": "expected_verdict is the label a careful human reader would assign from the supplied text alone: suspected_scam needs a deceptive pressure, impersonation, or request for a secret or payment; spam is unsolicited promotion; legitimate is an expected notice or ordinary message with no such request; unknown means the supplied evidence is not enough. It is not the output of any detector.",
+    "purpose": "20 held-out scenarios. Run only for the final measurement; never tune on them."
+  },
+  "scenarios": [
+    {
+      "id": "HO-01",
+      "group": "tpl-flight",
+      "category": "benign_notification",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "text": "Check-in for flight FR 482 opens in 24 hours. Manage your booking in the airline app.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Travel notification that asks for nothing",
+      "reviewers": []
+    },
+    {
+      "id": "HO-02",
+      "group": "tpl-statement",
+      "category": "benign_notification",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "text": "Your March statement is ready in the app. We will never ask for your PIN by message.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Statement notice that explicitly warns against sharing a PIN",
+      "reviewers": []
+    },
+    {
+      "id": "HO-03",
+      "group": "tpl-library",
+      "category": "benign_notification",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "text": "Your reserved book is ready for pickup at the library until Friday.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Library pickup notice",
+      "reviewers": []
+    },
+    {
+      "id": "HO-04",
+      "group": "tpl-offer-letter",
+      "category": "job",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "text": "Your offer letter is attached to the email sent from the careers portal. Please sign and return it by Monday.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Offer paperwork with no fee or credential request",
+      "reviewers": []
+    },
+    {
+      "id": "HO-05",
+      "group": "tpl-url-docs",
+      "category": "benign_notification",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "urls": [
+          "https://docs.example.test/guides/getting-started#install"
+        ],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Benign documentation deep link with a fragment",
+      "reviewers": []
+    },
+    {
+      "id": "HO-06",
+      "group": "tpl-flash",
+      "category": "promotion",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "spam",
+      "ambiguous": false,
+      "input": {
+        "text": "Flash sale ends at midnight: 50 percent discount on laptops. Unsubscribe anytime.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Unsolicited promotion with opt-out wording",
+      "reviewers": []
+    },
+    {
+      "id": "HO-07",
+      "group": "tpl-gym",
+      "category": "promotion",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "spam",
+      "ambiguous": false,
+      "input": {
+        "text": "New gym membership promotion: your first month is free. Reply STOP to unsubscribe.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Unsolicited promotion with opt-out wording",
+      "reviewers": []
+    },
+    {
+      "id": "HO-08",
+      "group": "tpl-vip",
+      "category": "promotion",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "spam",
+      "ambiguous": true,
+      "input": {
+        "text": "You have been selected for an exclusive offer. Open http://offers.example.test/vip to see it.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Vague promotional lure with a link; could be an early scam stage, so reviewers must confirm.",
+      "reviewers": []
+    },
+    {
+      "id": "HO-09",
+      "group": "tpl-locked",
+      "category": "credential_scam",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Your account is locked. Confirm your password at http://secure-harbor-login.test to restore access.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Credential request at a lookalike host",
+      "reviewers": []
+    },
+    {
+      "id": "HO-10",
+      "group": "tpl-cvv",
+      "category": "credential_scam",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Reply with your CVV to cancel the unauthorised payment of $480.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Asks for a card security code to 'cancel' a payment",
+      "reviewers": []
+    },
+    {
+      "id": "HO-11",
+      "group": "tpl-grant",
+      "category": "fake_offer",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "You have been shortlisted for a government grant of $9,000. Pay a $50 processing fee to release it.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Advance-fee lure",
+      "reviewers": []
+    },
+    {
+      "id": "HO-12",
+      "group": "tpl-crypto",
+      "category": "payment_pressure",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Send 0.2 BTC to this wallet and receive 0.4 BTC back within the hour.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Doubling scheme with a payment demand",
+      "reviewers": []
+    },
+    {
+      "id": "HO-13",
+      "group": "tpl-wrong-number",
+      "category": "payment_pressure",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": true,
+      "input": {
+        "text": "Sorry, wrong number. Anyway, I make great returns with a trading app. Transfer a small deposit and I will show you how.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Wrong-number opener leading to a transfer request; could pass as a stray message, so reviewers must confirm.",
+      "reviewers": []
+    },
+    {
+      "id": "HO-14",
+      "group": "tpl-utility",
+      "category": "payment_pressure",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Your electricity will be disconnected today unless you pay $230 immediately with a gift card.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Utility threat demanding gift-card payment",
+      "reviewers": []
+    },
+    {
+      "id": "HO-15",
+      "group": "tpl-data-entry",
+      "category": "job",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Work-from-home data entry: pay a $75 registration fee at http://198.51.100.77/register to access tasks.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Job lure that charges a registration fee at an IP-address host",
+      "reviewers": []
+    },
+    {
+      "id": "HO-16",
+      "group": "tpl-url-punycode",
+      "category": "credential_scam",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": true,
+      "input": {
+        "urls": [
+          "http://xn--secure-bnk-9ya.test/login"
+        ],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Punycode host with a login path; could be a legitimate internationalised domain, so reviewers must confirm.",
+      "reviewers": []
+    },
+    {
+      "id": "HO-17",
+      "group": "thr-marketplace",
+      "category": "conversation",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "messages": [
+          {
+            "id": "m1",
+            "sender_id": "buyer-1",
+            "text": "I want the bike. This is urgent, I leave tonight."
+          },
+          {
+            "id": "m2",
+            "sender_id": "me",
+            "text": "Great, when can you collect it?"
+          },
+          {
+            "id": "m3",
+            "sender_id": "buyer-1",
+            "text": "First confirm the verification code I just sent you."
+          }
+        ],
+        "urls": [],
+        "source": "conversation",
+        "sender_id": "me"
+      },
+      "support": "Buyer pairs urgency with a request for a verification code; only the buyer's messages count",
+      "reviewers": []
+    },
+    {
+      "id": "HO-18",
+      "group": "thr-protected",
+      "category": "conversation",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "messages": [
+          {
+            "id": "m1",
+            "sender_id": "me",
+            "text": "Urgent reminder: never send your OTP to anyone who asks."
+          },
+          {
+            "id": "m2",
+            "sender_id": "sender-g",
+            "text": "Understood, thanks for the warning."
+          }
+        ],
+        "urls": [],
+        "source": "conversation",
+        "sender_id": "me"
+      },
+      "support": "Urgency and OTP wording appear only in the protected user's own message, which must be excluded",
+      "reviewers": []
+    },
+    {
+      "id": "HO-19",
+      "group": "fail-malformed",
+      "category": "failure",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "unknown",
+      "ambiguous": false,
+      "input": {
+        "text": "   ",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Blank-only input is not a meaningful request and must be rejected, not analysed",
+      "reviewers": [],
+      "expected": {
+        "http_status": 422
+      }
+    },
+    {
+      "id": "HO-20",
+      "group": "fail-deadline",
+      "category": "failure",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Final reminder: settle your overdue invoice today at http://198.51.100.99/invoice",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Text check misses the overall deadline; the completed URL result must be preserved",
+      "reviewers": [],
+      "condition": {
+        "detectors": {
+          "text": "slow",
+          "url": "ok"
+        },
+        "analysis_timeout_seconds": 0.3
+      },
+      "expected": {
+        "http_status": 200,
+        "status": "partial",
+        "coverage": {
+          "text": "unavailable",
+          "url": "complete"
+        },
+        "evidence_required": true
+      }
+    }
+  ]
+}

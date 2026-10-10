@@ -8,6 +8,9 @@ on:
 permissions:
   contents: read
 
+# No job needs a paid provider key, a secret, or a model download. The integration tests
+# remove provider credentials from their environment and refuse non-loopback connections.
+
 jobs:
   web:
     runs-on: ubuntu-latest
@@ -37,6 +40,11 @@ jobs:
           cache-dependency-path: services/gateway/requirements-dev.txt
       - run: python -m pip install -r services/gateway/requirements-dev.txt
       - run: python -m pytest -q services/gateway/tests services/text/tests services/ocr/tests tests/integration
+      # Structure rules for the 30-case development and 20-case holdout sets.
+      - run: python evaluation/validate_fixtures.py
+      # Contract and degraded-mode run of the development set. It is not a detection result and
+      # never runs the holdout. Fails on contract violations or unmet failure-scenario expectations.
+      - run: python evaluation/run_evaluation.py --in-process --set development --check-expectations --output /tmp/development-contract-run.json
 
   url-python-313:
     runs-on: ubuntu-latest
@@ -46,6 +54,10 @@ jobs:
         with:
           python-version: "3.13"
           cache: pip
-          cache-dependency-path: services/url/requirements-dev.txt
-      - run: python -m pip install -r services/url/requirements-dev.txt
-      - run: python -m pytest -q services/url/tests
+          cache-dependency-path: |
+            services/url/requirements-dev.txt
+            services/gateway/requirements-dev.txt
+      - run: python -m pip install -r services/url/requirements-dev.txt -r services/gateway/requirements-dev.txt
+      # The integration tests that drive the real URL service need Python 3.13, so they run here
+      # as well as in the gateway job, where they skip that part.
+      - run: python -m pytest -q services/url/tests tests/integration

@@ -1,0 +1,604 @@
+{
+  "metadata": {
+    "split": "development",
+    "version": "0.2.0",
+    "synthetic": true,
+    "provenance": "All scenarios are authored synthetic examples. No real message, person, brand, domain or phone number is used; URLs use reserved .test/.example hosts or documentation IP ranges.",
+    "drafted_by": "Drafted with Claude (AI assistant) for @devisripriyanam. Labels have not been reviewed by two teammates.",
+    "freeze": {
+      "status": "draft",
+      "required_reviewers": 2,
+      "frozen_at": null
+    },
+    "label_policy": "expected_verdict is the label a careful human reader would assign from the supplied text alone: suspected_scam needs a deceptive pressure, impersonation, or request for a secret or payment; spam is unsolicited promotion; legitimate is an expected notice or ordinary message with no such request; unknown means the supplied evidence is not enough. It is not the output of any detector.",
+    "purpose": "30 development scenarios for building and reviewing the checks. Tuning is allowed here."
+  },
+  "scenarios": [
+    {
+      "id": "DEV-01",
+      "group": "tpl-otp-notice",
+      "category": "benign_notification",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "text": "Your Harbor Credit Union verification code is 482913. It expires in 10 minutes. Never share this code with anyone, including our staff.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Expected OTP delivery that warns the reader not to share the code",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-02",
+      "group": "tpl-otp-notice",
+      "category": "benign_notification",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "text": "Use 905217 to sign in to your Fernwood account. We will never call or message to ask for this code.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Second wording of the same OTP-notice template; kept in the same split",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-03",
+      "group": "tpl-appointment",
+      "category": "benign_notification",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "text": "Reminder: your dental check-up is on Tuesday 14 October at 10:30. Reply C to confirm or call the clinic to reschedule.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Appointment reminder with no request for secrets or payment",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-04",
+      "group": "tpl-card-alert",
+      "category": "benign_notification",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "text": "Card ending 4417 was used for $23.80 at Corner Cafe. If this was not you, call the number on the back of your card.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Transaction alert pointing to the number printed on the card; no link or secret request",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-05",
+      "group": "tpl-password-notice",
+      "category": "benign_notification",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": true,
+      "input": {
+        "text": "Your Fernwood password was changed today at 09:12. If you did not do this, contact support from the official app.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Account-change notice without a link or request. Fake notices use this shape, so reviewers must confirm.",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-06",
+      "group": "tpl-delivery-legit",
+      "category": "delivery",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "text": "ParcelPoint: your parcel PP-20931 is out for delivery today between 13:00 and 16:00. Track it in the ParcelPoint app.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Delivery update that points to the app and asks for nothing",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-07",
+      "group": "tpl-job-interview",
+      "category": "job",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "text": "Hi Sam, thanks for applying for the Data Analyst role. Are you free for a 30-minute video interview on Thursday at 11:00?",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Recruiter scheduling an interview; no fee, secret or payment request",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-08",
+      "group": "tpl-delivery-legit",
+      "category": "delivery",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "text": "Your order 55821 has shipped. Track it at https://shop.example.test/orders/55821",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Shipping confirmation with a reserved-domain tracking link",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-09",
+      "group": "tpl-promo-sale",
+      "category": "promotion",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "spam",
+      "ambiguous": false,
+      "input": {
+        "text": "Weekend sale: 30 percent discount on all shoes. Reply STOP to unsubscribe.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Unsolicited promotion with opt-out wording",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-10",
+      "group": "tpl-promo-sale",
+      "category": "promotion",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "spam",
+      "ambiguous": false,
+      "input": {
+        "text": "Limited offer: buy one get one free on coffee beans this Saturday. Reply STOP to opt out.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Second wording of the sale template; kept in the same split",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-11",
+      "group": "tpl-promo-loyalty",
+      "category": "promotion",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "spam",
+      "ambiguous": true,
+      "input": {
+        "text": "Last chance: your loyalty points expire tonight. Redeem a free coffee at any store.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Promotional loyalty reminder with urgency; could be read as a benign notice, so reviewers must confirm.",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-12",
+      "group": "tpl-code-scam",
+      "category": "credential_scam",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Security alert: your wallet is locked. Reply with the 6-digit code we just texted you to unlock it.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Asks the reader to hand over a one-time code under pressure",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-13",
+      "group": "tpl-code-scam",
+      "category": "credential_scam",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "We detected a login from a new device. Confirm your PIN and password by replying to this message.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Asks the reader to send a PIN and password by message",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-14",
+      "group": "tpl-delivery-scam",
+      "category": "delivery",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "ParcelPoint: your parcel is held at the depot. Pay a $1.99 redelivery fee at http://parcelpoint-redeliver.test/pay today or it will be returned.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Delivery fee demand with a lookalike host and a deadline",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-15",
+      "group": "tpl-delivery-scam",
+      "category": "delivery",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Delivery attempt failed. Update your address and pay the customs fee: http://198.51.100.24/track",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Payment demand pointing at a bare IP-address host",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-16",
+      "group": "tpl-job-scam",
+      "category": "job",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Congratulations, you are hired as a remote assistant. Send a refundable $120 equipment fee by gift card to start on Monday.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Job offer that requires an upfront gift-card payment",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-17",
+      "group": "tpl-job-scam",
+      "category": "job",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Earn $400 a day from home with no interview. Message your bank login details to our recruiter to set up your salary account.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Job offer that asks for bank login details",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-18",
+      "group": "tpl-prize-scam",
+      "category": "fake_offer",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "You won the Harbor Prize Draw. Claim your $5,000 reward by entering your card number at http://claim-prize.test/win",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Prize claim that asks for a card number",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-19",
+      "group": "tpl-refund-scam",
+      "category": "fake_offer",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "A tax refund of $842 is waiting for you. Verify your bank account here: http://203.0.113.9/refund",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Refund lure that asks for bank verification at an IP-address host",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-20",
+      "group": "tpl-toll-scam",
+      "category": "payment_pressure",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Final notice: unpaid toll of $14.60. Pay within 24 hours to avoid a $200 penalty.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Payment demand with a deadline and a penalty threat, no verifiable sender",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-21",
+      "group": "tpl-family-scam",
+      "category": "payment_pressure",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Hi Mum, I lost my phone. Can you transfer $350 to this new account right now? I will explain later.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Impersonated relative asking for an urgent transfer to a new account",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-22",
+      "group": "tpl-url-deeplink",
+      "category": "benign_notification",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "urls": [
+          "https://www.example.test/account/orders/12345?ref=email&view=full"
+        ],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Benign deep link on a reserved host with a long path and query string",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-23",
+      "group": "tpl-url-ip",
+      "category": "credential_scam",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "urls": [
+          "http://203.0.113.45/login/verify-account"
+        ],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Login-verification path on a bare IP-address host",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-24",
+      "group": "thr-escalation-a",
+      "category": "conversation",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "messages": [
+          {
+            "id": "m1",
+            "sender_id": "sender-a",
+            "text": "Hi, this is the fraud desk about your card."
+          },
+          {
+            "id": "m2",
+            "sender_id": "sender-a",
+            "text": "Act now, your card will be suspended."
+          },
+          {
+            "id": "m3",
+            "sender_id": "sender-a",
+            "text": "Send your OTP so we can stop the charge."
+          }
+        ],
+        "urls": [],
+        "source": "conversation",
+        "sender_id": "me"
+      },
+      "support": "One sender escalates from urgency to an OTP request; both messages must be cited",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-25",
+      "group": "thr-payment-b",
+      "category": "conversation",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "messages": [
+          {
+            "id": "m1",
+            "sender_id": "sender-c",
+            "text": "Urgent: the invoice is overdue."
+          },
+          {
+            "id": "m2",
+            "sender_id": "me",
+            "text": "Which invoice? I have not received one."
+          },
+          {
+            "id": "m3",
+            "sender_id": "sender-c",
+            "text": "Transfer the money to this wallet immediately."
+          }
+        ],
+        "urls": [],
+        "source": "conversation",
+        "sender_id": "me"
+      },
+      "support": "Sender pairs urgency with a payment demand; the protected user's reply is excluded",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-26",
+      "group": "thr-benign-c",
+      "category": "conversation",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "legitimate",
+      "ambiguous": false,
+      "input": {
+        "messages": [
+          {
+            "id": "m1",
+            "sender_id": "me",
+            "text": "Dinner on Friday at 7?"
+          },
+          {
+            "id": "m2",
+            "sender_id": "sender-d",
+            "text": "Sounds good. Send me the restaurant address and I will book."
+          },
+          {
+            "id": "m3",
+            "sender_id": "me",
+            "text": "It is the Fernwood Bistro on Main Street."
+          }
+        ],
+        "urls": [],
+        "source": "conversation",
+        "sender_id": "me"
+      },
+      "support": "Ordinary plans; 'send me the address' is not a secret or payment request",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-27",
+      "group": "thr-split-d",
+      "category": "conversation",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "unknown",
+      "ambiguous": false,
+      "input": {
+        "messages": [
+          {
+            "id": "m1",
+            "sender_id": "sender-e",
+            "text": "This is urgent, the offer expires today."
+          },
+          {
+            "id": "m2",
+            "sender_id": "sender-f",
+            "text": "Please send your PIN to confirm the booking."
+          }
+        ],
+        "urls": [],
+        "source": "conversation",
+        "sender_id": "me"
+      },
+      "support": "Urgency and a secret request come from different senders and must not be combined",
+      "reviewers": []
+    },
+    {
+      "id": "DEV-28",
+      "group": "fail-text-down",
+      "category": "failure",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Your parcel is held. Pay the fee now at http://198.51.100.24/pay",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Text check is down while the URL check completes; the partial result must keep the URL evidence",
+      "reviewers": [],
+      "condition": {
+        "detectors": {
+          "text": "unavailable",
+          "url": "ok"
+        }
+      },
+      "expected": {
+        "http_status": 200,
+        "status": "partial",
+        "coverage": {
+          "text": "unavailable",
+          "url": "complete"
+        },
+        "evidence_required": true
+      }
+    },
+    {
+      "id": "DEV-29",
+      "group": "fail-url-down",
+      "category": "failure",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "suspected_scam",
+      "ambiguous": false,
+      "input": {
+        "text": "Confirm your PIN by replying now to keep your account open.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "URL service is down but the message has no link, so the text scam keeps its evidence",
+      "reviewers": [],
+      "condition": {
+        "detectors": {
+          "text": "ok",
+          "url": "unavailable"
+        }
+      },
+      "expected": {
+        "http_status": 200,
+        "status": "complete",
+        "coverage": {
+          "text": "complete",
+          "url": "not_applicable"
+        },
+        "evidence_required": true
+      }
+    },
+    {
+      "id": "DEV-30",
+      "group": "fail-both-down",
+      "category": "failure",
+      "provenance": "synthetic_authored",
+      "expected_verdict": "unknown",
+      "ambiguous": false,
+      "input": {
+        "text": "Update your billing details at http://192.0.2.88/billing before midnight.",
+        "urls": [],
+        "messages": [],
+        "source": "manual"
+      },
+      "support": "Every applicable detector is down; the result must be unknown, never clean or zero risk",
+      "reviewers": [],
+      "condition": {
+        "detectors": {
+          "text": "unavailable",
+          "url": "unavailable"
+        }
+      },
+      "expected": {
+        "http_status": 200,
+        "status": "unavailable",
+        "severity": "unknown",
+        "coverage": {
+          "text": "unavailable",
+          "url": "unavailable"
+        }
+      }
+    }
+  ]
+}

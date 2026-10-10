@@ -35,7 +35,7 @@ Copy-Item .env.example .env
 docker compose up --build
 ```
 
-Open `http://localhost:4173`. With the untouched example (`DEMO_MODE=false`), live detector checks are honestly unavailable. To include the optional model-free OCR service (see its setup guide for model-enabled operation):
+Open `http://localhost:4173`. With the untouched example (`DEMO_MODE=false`) and no provider key, the text check is honestly unavailable while the URL check runs, so a request that has both comes back `partial`. To include the optional model-free OCR service (see its setup guide for model-enabled operation):
 
 ```powershell
 docker compose --profile ocr up --build
@@ -95,14 +95,25 @@ npm test
 npm run build
 ```
 
-Against a running fixture-mode Docker stack:
+Check the evaluation sets and run the contract and degraded-mode pass (no services, no network, no key):
+
+```powershell
+$env:PYTHONPATH = (Get-Location).Path
+.\.venv\Scripts\python.exe evaluation\validate_fixtures.py
+.\.venv\Scripts\python.exe evaluation\run_evaluation.py --in-process --set development --check-expectations
+```
+
+Against a running stack (Docker or native), pick the expectation that matches how it was started: `fixture` for `DEMO_MODE=true`, `live-no-key` for the default stack, `unavailable` when no detector service is reachable:
 
 ```powershell
 py -3 scripts\smoke.py --base-url http://127.0.0.1:4173/api --expect fixture
-py -3 evaluation\run_evaluation.py --base-url http://127.0.0.1:4173/api
+py -3 tests\e2e\demo_walkthrough.py --base-url http://127.0.0.1:4173/api --mode fixture
+py -3 evaluation\run_evaluation.py --base-url http://127.0.0.1:4173/api --set development
 ```
 
-The evaluation fixtures are synthetic contract examples. They are not a benchmark or production-readiness claim.
+The integration tests start real native processes and run the smoke script against them, so a clean checkout is checked end to end with no key, no model download and no network. `docs/demo-run.md` records an actual run.
+
+The evaluation sets are synthetic. The development and holdout sets are drafts until two teammates have reviewed the labels and the sets are frozen; see `docs/evaluation.md`. Nothing here is a benchmark or production-readiness claim.
 
 ## Environment variables
 
