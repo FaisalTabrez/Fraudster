@@ -67,6 +67,12 @@ describe("glass contrast (WCAG AA)", () => {
     expect(ratio(rgb(token("scam-fg")), fill)).toBeGreaterThanOrEqual(4.5);
   });
 
+  it("control border (--ink over --surface) is at least 3:1 against the page and the field fill", () => {
+    const border = over(rgb(token("ink")), percent("glass-control-border-alpha"), surface);
+    expect(ratio(border, ground)).toBeGreaterThanOrEqual(3);
+    expect(ratio(border, over(surface, percent("glass-field-alpha"), glow))).toBeGreaterThanOrEqual(3);
+  });
+
   it("primary glass button: --on-brand text is at least 4.5:1 on brand-tinted glass over white", () => {
     const fill = over(brand, percent("glass-solid-alpha"), surface);
     expect(ratio(rgb(token("on-brand")), fill)).toBeGreaterThanOrEqual(4.5);
