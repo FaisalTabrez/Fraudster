@@ -94,7 +94,7 @@ python -m pytest -q services/gateway/tests services/text/tests services/ocr/test
 python -m pytest -q services/url/tests tests/integration
   129 passed in 23.71s        (Python 3.13; includes the tests that drive the real URL service)
 cd apps/web && npm run typecheck && npm test && npm run build
-  typecheck passed; 11 files / 182 tests passed; production build passed
+  typecheck passed; 11 files / 184 tests passed; production build passed
 python evaluation/validate_fixtures.py                              exit 0 (sets valid, not frozen)
 python evaluation/run_evaluation.py --in-process --set development --check-expectations
   30/30 scored, 0 skipped, 0 errors, 0 contract violations, 0 unmet expectations   exit 0
