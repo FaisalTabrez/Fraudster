@@ -53,6 +53,10 @@ the installer builds temporary compatibility wheels (`1fraudster` build tag)
 replacing only those requirements with the single headless distribution. It
 preserves implementation bytes, rebuilds RECORD, checks actual OpenCV distribution
 ownership and runs `pip check`. It does not modify installed packages in place.
+Using `pip install --no-deps` alone would retain upstream metadata requiring the
+overlapping GUI distributions, so `pip check` would still report unsatisfied
+requirements. The compatibility wheels keep dependency metadata consistent with
+the deliberately selected runtime instead of suppressing dependency validation.
 Use this command rather than installing the model requirements alone or mixing
 other OpenCV distributions into the environment. Docker uses the same installer.
 `constraints-model.txt` records all tested optional dependency versions so future
@@ -98,7 +102,10 @@ OCR container's `OCR_MODEL_DIR=/service/models` and mounts the prepared
 `./services/ocr/models:/service/models:ro`. Prepare models natively as above or
 with a separate writable bind mount for the explicit prepare command. The
 non-root container also needs Linux runtime libraries provided by its Dockerfile.
-Container inference has not been verified in this environment (Docker absent).
+Non-root Linux CPU inference has been verified with network disabled and the
+reviewed model files mounted read-only: synthetic PNG/JPEG text, dimensions and
+boxes passed. The public Docker browser flow and exact 5 MB upload boundary
+also passed. See `docs/ingestion-verification.md` for commands and environment.
 No shared root Compose configuration is changed in this PR.
 
 ## Results and failures
