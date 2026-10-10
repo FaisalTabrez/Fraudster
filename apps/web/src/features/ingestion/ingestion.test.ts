@@ -22,6 +22,13 @@ describe("ingestion validation and transport", () => {
     await expect(extractScreenshot(new File(["test"], "test.png", { type: "image/png" }))).rejects.toThrow("OCR is unavailable");
     expect(fetch).toHaveBeenCalledWith("/api/v1/extract", { method: "POST", body: expect.any(FormData) });
   });
+  it("handles a non-JSON proxy 413 without exposing HTML or extraction success", async () => {
+    vi.spyOn(image, "withLocalImage").mockResolvedValue(undefined);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("<html>413 Request Entity Too Large</html>",
+      { status: 413, headers: { "Content-Type": "text/html" } })));
+    await expect(extractScreenshot(new File(["synthetic"], "test.png", { type: "image/png" })))
+      .rejects.toThrow("OCR service returned an unreadable response.");
+  });
   it.each(["upi://pay?pa=synthetic", "javascript:alert(1)", "WIFI:T:WPA;S:synthetic;;", "BEGIN:VCARD\nFN:synthetic",
            "mailto:synthetic@example.test", "https://", "https://user:pass@example.test", "\u0000binary", ""])
     ("rejects unsupported/invalid QR content %s", content => {
