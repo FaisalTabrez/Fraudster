@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { fixtureScamResponse, noWarningResponse, partialResponse, unavailableResponse } from "../../test-fixtures";
-import type { AnalysisResponse } from "../../types/analysis";
+import type { AnalysisResponse, ConversationMessage } from "../../types/analysis";
 import { ResultPanel } from "./ResultPanel";
 
 describe("ResultPanel", () => {
@@ -113,5 +113,51 @@ describe("ResultPanel", () => {
     const result: AnalysisResponse = { ...fixtureScamResponse, limitations: ["Same.", "Same."] };
     render(<ResultPanel result={result} />);
     expect(screen.getAllByText("Same.")).toHaveLength(2);
+  });
+
+  describe("conversation evidence", () => {
+    const submitted: ConversationMessage[] = [
+      { id: "m1", sender_id: "sender-a", text: "Act now, this is urgent." },
+      { id: "m2", sender_id: "sender-a", text: "Send your OTP to verify, then reply." },
+    ];
+    const withEvidence = (quote: string, messageId: string): AnalysisResponse => ({
+      ...fixtureScamResponse,
+      evidence: [
+        {
+          id: "conv-1",
+          indicator_type: "urgent_secret_request",
+          source_module: "conversation",
+          quote,
+          message_id: messageId,
+          explanation: "Urgent wording from one sender.",
+        },
+      ],
+    });
+
+    it("names the message and sender and shows the full submitted message", () => {
+      const { container } = render(<ResultPanel result={withEvidence("Send your OTP", "m2")} messages={submitted} />);
+      expect(container.querySelector(".message-ref")).toHaveTextContent("Message m2 - sender-a");
+      expect(container.querySelector(".source-message")).toHaveTextContent("Send your OTP to verify, then reply.");
+    });
+
+    it("does not repeat a message that the quote already shows in full", () => {
+      const { container } = render(
+        <ResultPanel result={withEvidence("Act now, this is urgent.", "m1")} messages={submitted} />,
+      );
+      expect(container.querySelector(".message-ref")).toHaveTextContent("Message m1 - sender-a");
+      expect(container.querySelector(".source-message")).toBeNull();
+    });
+
+    it("says so when an evidence message ID is not in the submitted conversation", () => {
+      const { container } = render(<ResultPanel result={withEvidence("Act now", "m9")} messages={submitted} />);
+      expect(container.querySelector(".message-ref")).toHaveTextContent(
+        "Message m9 is not part of the submitted conversation.",
+      );
+    });
+
+    it("never shows a long machine-generated ID", () => {
+      const { container } = render(<ResultPanel result={withEvidence("Act now", "m1")} messages={submitted} />);
+      expect(container.textContent).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-/i);
+    });
   });
 });
