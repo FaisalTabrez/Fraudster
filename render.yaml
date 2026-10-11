@@ -1,0 +1,57 @@
+previews:
+  generation: "off"
+
+services:
+  - type: pserv
+    name: fraudster-text
+    runtime: docker
+    plan: 0.5c-512mb
+    region: singapore
+    dockerContext: ./services/text
+    dockerfilePath: ./services/text/Dockerfile
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: TEXT_PROVIDER
+        value: anthropic
+      - key: TEXT_MODEL
+        value: claude-haiku-5-5
+      - key: TEXT_API_KEY
+        sync: false
+      - key: TEXT_API_BASE_URL
+        value: https://api.anthropic.com
+      - key: TEXT_TIMEOUT_SECONDS
+        value: "8"
+
+  - type: pserv
+    name: fraudster-url
+    runtime: docker
+    plan: 0.5c-512mb
+    region: singapore
+    dockerContext: ./services/url
+    dockerfilePath: ./services/url/Dockerfile
+    autoDeployTrigger: checksPass
+
+  - type: web
+    name: fraudster-gateway
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerContext: ./services/gateway
+    dockerfilePath: ./services/gateway/Dockerfile
+    autoDeployTrigger: checksPass
+    healthCheckPath: /health/live
+    envVars:
+      - key: TEXT_SERVICE_URL
+        fromService:
+          type: pserv
+          name: fraudster-text
+          property: hostport
+      - key: URL_SERVICE_URL
+        fromService:
+          type: pserv
+          name: fraudster-url
+          property: hostport
+      - key: ANALYSIS_TIMEOUT_SECONDS
+        value: "10"
+      - key: DEMO_MODE
+        value: "false"

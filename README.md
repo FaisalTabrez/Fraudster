@@ -43,6 +43,15 @@ docker compose --profile ocr up --build
 
 Stop the stack with `docker compose down`. Compose exposes only the web service on host port 4173; gateway and detector names remain internal.
 
+## Hosted demo
+
+Cloudflare Pages hosts the browser app and its same-origin `/api` forwarding
+function. Render hosts the public gateway plus private text and URL services.
+The deployment Blueprint, required secret, cost boundary, and exact smoke checks
+are documented in [Render deployment](docs/render-deployment.md). Keep
+`DEMO_MODE=false` for the Claude-backed demo and configure `TEXT_API_KEY` only in
+Render.
+
 ## Native development
 
 The frontend targets Node 24 LTS and has a committed lock file. The gateway and text service target Python 3.11. The URL adapter is isolated on Python 3.13 because its pinned upstream metadata requires Python 3.13 or newer.

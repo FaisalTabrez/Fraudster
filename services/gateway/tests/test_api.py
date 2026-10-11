@@ -18,6 +18,23 @@ async def request(app, method: str, path: str, **kwargs) -> httpx.Response:
         return await client.request(method, path, **kwargs)
 
 
+def test_render_private_hostport_is_normalized_to_http() -> None:
+    settings = Settings(
+        _env_file=None,
+        text_service_url="fraudster-text-ab12:10000",
+        url_service_url="fraudster-url-cd34:10000",
+    )
+
+    assert settings.text_service_url == "http://fraudster-text-ab12:10000"
+    assert settings.url_service_url == "http://fraudster-url-cd34:10000"
+
+
+def test_explicit_private_service_scheme_is_preserved() -> None:
+    settings = Settings(_env_file=None, text_service_url="https://private-text.example")
+
+    assert settings.text_service_url == "https://private-text.example"
+
+
 class UnavailableClients:
     async def text(self, _text: str) -> ModuleResult:
         return unavailable_result("text", "text adapter not configured")
